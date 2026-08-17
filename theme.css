@@ -1,0 +1,537 @@
+@import url('https://fonts.googleapis.com/css2?family=Fondamento&family=Pirata+One&display=swap');
+
+/* Thème final chargé après la feuille historique. */
+
+body {
+  min-height: 100vh;
+  background-color: #061219;
+  background-image:
+    linear-gradient(180deg, #04111acc, #08191dcc),
+    radial-gradient(ellipse at 50% 40%, transparent 15%, #02090ed9 88%),
+    url("assets/environments/jungle-temple-arena.png");
+  background-position: center, center, center;
+  background-size: cover, cover, cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+:root {
+  --font-adventure-title: "Pirata One", "Copperplate Gothic Bold", Georgia, serif;
+  --font-adventure-text: "Fondamento", Georgia, "Times New Roman", serif;
+  --font-game-readable: "Trebuchet MS", Verdana, Arial, sans-serif;
+}
+
+.topbar h1,
+.adventure-lobby h2,
+dialog h2 {
+  font-family: var(--font-adventure-title);
+  font-weight: 400;
+  letter-spacing: .025em;
+}
+
+.adventure-lobby .lede,
+.adventure-lobby label,
+.adventure-lobby select,
+.arena-button,
+dialog,
+.game {
+  font-family: var(--font-adventure-text);
+}
+
+.game { font-family: var(--font-adventure-text); }
+
+.status-strip {
+  overflow: hidden;
+  border: 2px solid #b89a55;
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, #30493e, #142a25),
+    repeating-linear-gradient(90deg, #ffffff08 0 2px, transparent 2px 7px);
+  box-shadow: 0 7px 0 #091a17, 0 14px 25px #0008, inset 0 0 20px #72b18b22;
+}
+
+.status-strip div {
+  border-right: 1px solid #c8ad6844;
+  text-align: center;
+}
+
+.status-strip small {
+  color: #d9c17d;
+  font-family: Georgia, serif;
+}
+
+.status-strip strong {
+  color: #f7f0d2;
+  font-size: 17px;
+  text-shadow: 0 2px #07120f;
+}
+
+.status-strip small,
+.status-strip strong {
+  font-family: var(--font-game-readable);
+}
+
+.arena article.player-card {
+  position: relative;
+  align-self: end;
+  min-height: 430px;
+  margin-top: 285px;
+  padding: 27px 23px 22px;
+  overflow: visible;
+  color: #263329;
+  border: 7px solid #273d30;
+  border-radius: 16px 16px 24px 24px;
+  background:
+    radial-gradient(circle at 25% 20%, #fffdf0 0 2px, transparent 3px),
+    radial-gradient(circle at 74% 73%, #b59d6320 0 1px, transparent 2px),
+    repeating-linear-gradient(4deg, #f4eccf 0 3px, #eee2be 4px 5px, #f7efd6 6px 10px);
+  background-size: 43px 43px, 31px 31px, auto;
+  box-shadow:
+    0 5px 0 #b5934e,
+    0 10px 0 #10231b,
+    0 20px 32px #0009,
+    inset 0 0 0 2px #d6bc72,
+    inset 0 0 35px #8e713844;
+}
+
+.arena article.player-card::before,
+.arena article.player-card::after {
+  position: absolute;
+  z-index: 6;
+  top: -22px;
+  color: #4d7a42;
+  font: 54px/1 Georgia, serif;
+  text-shadow: 2px 3px #142819, 0 0 8px #7bc95b66;
+  pointer-events: none;
+}
+
+.arena article.player-card::before {
+  content: "❧";
+  left: -13px;
+  transform: rotate(-18deg);
+}
+
+.arena article.player-card::after {
+  content: "❧";
+  right: -13px;
+  transform: scaleX(-1) rotate(-18deg);
+}
+
+.arena article.player-card.active {
+  outline: 3px solid #ffd36c;
+  outline-offset: 4px;
+  box-shadow:
+    0 5px 0 #d29b3d,
+    0 10px 0 #10231b,
+    0 20px 32px #0009,
+    0 0 28px #ffb743aa,
+    inset 0 0 0 2px #f1d38c,
+    inset 0 0 35px #b77b2844;
+}
+
+.arena article.player-card:not(.active) {
+  filter: brightness(.76) saturate(.75);
+  transition: filter .35s ease, transform .35s ease;
+}
+
+.arena article.player-card.active {
+  z-index: 8;
+  transform: translateY(-5px);
+  filter: brightness(1.08) saturate(1.12);
+  animation: active-card-pulse 1.8s ease-in-out infinite;
+}
+
+.turn-indicator {
+  position: absolute;
+  z-index: 12;
+  top: -58px;
+  left: 50%;
+  display: none;
+  min-width: 190px;
+  padding: 10px 18px 9px;
+  transform: translateX(-50%);
+  border: 2px solid #fff1a8;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #ffda68, #e86b2e);
+  color: #38190f;
+  font: 900 12px/1 Georgia, serif;
+  letter-spacing: .11em;
+  text-align: center;
+  text-shadow: 0 1px #fff2ae;
+  box-shadow: 0 4px 0 #803018, 0 0 22px #ffc845, 0 0 45px #ff9e36aa;
+  pointer-events: none;
+}
+
+.turn-indicator b {
+  position: absolute;
+  top: 31px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #ffb33b;
+  font-size: 20px;
+  text-shadow: 0 2px #6d2716, 0 0 10px #ffd461;
+  animation: turn-arrow 1s ease-in-out infinite;
+}
+
+.player-card.active .turn-indicator {
+  display: block;
+}
+
+.player-card.active .avatar-aura {
+  left: 2%;
+  right: 2%;
+  top: -2%;
+  bottom: 0;
+  background: radial-gradient(ellipse, #fff5a866 0 26%, #ffbc3d44 42%, transparent 70%);
+  filter: blur(7px);
+  animation: active-aura 1.5s ease-in-out infinite alternate;
+}
+
+.player-card.active .character-sprite {
+  filter: drop-shadow(0 12px 7px #0009) drop-shadow(0 0 12px #ffd65c) drop-shadow(0 0 25px #ff9d35aa);
+}
+
+/* Le mouvement signale exclusivement le joueur qui a la main. */
+.arena .left-avatar .character-sprite {
+  transform: translateX(-50%);
+}
+
+.arena .right-avatar .character-sprite {
+  transform: translateX(-50%) scaleX(-1);
+}
+
+.arena .player-card:not(.active) .character-sprite,
+.arena .player-card:not(.active) .avatar-shadow,
+.arena .player-card:not(.active) .avatar-aura {
+  animation: none !important;
+}
+
+.arena .player-card.active .character-sprite {
+  animation: character-idle 3.4s ease-in-out infinite;
+}
+
+.arena .player-card.active .right-avatar .character-sprite {
+  animation-name: character-idle-mirrored;
+}
+
+.arena .player-card.active .avatar-shadow {
+  animation: shadow-idle 3.4s ease-in-out infinite;
+}
+
+.game[data-phase="play"] .player-card.active .dice-rack::before {
+  content: "CHOISISSEZ VOTRE DÉ";
+  display: block;
+  width: 100%;
+  margin: -8px 0 10px;
+  color: #8a371d;
+  font: 900 8px/1 Georgia, serif;
+  letter-spacing: .14em;
+  text-align: center;
+}
+
+@keyframes active-card-pulse {
+  0%, 100% { box-shadow: 0 5px 0 #d29b3d, 0 10px 0 #10231b, 0 20px 32px #0009, 0 0 22px #ffb74399, inset 0 0 0 2px #f1d38c, inset 0 0 35px #b77b2844; }
+  50% { box-shadow: 0 5px 0 #f5c65b, 0 10px 0 #10231b, 0 20px 32px #0009, 0 0 44px #ffd55ddd, inset 0 0 0 3px #ffe897, inset 0 0 48px #ffb52f55; }
+}
+
+@keyframes active-aura {
+  to { transform: scale(1.12); opacity: .72; }
+}
+
+@keyframes turn-arrow {
+  50% { transform: translate(-50%, 5px); filter: brightness(1.3); }
+}
+
+.arena .player-head {
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #6b5632;
+  box-shadow: 0 2px #fff5c7;
+}
+
+.arena .player-head small {
+  color: #5b6048;
+  font: 800 9px/1 Georgia, serif;
+}
+
+.arena .player-head h3 {
+  display: inline-block;
+  margin: 7px 0 0;
+  padding: 5px 10px;
+  border: 1px solid #80672e;
+  border-radius: 5px;
+  background: linear-gradient(#fff5c9, #dbc789);
+  color: #16342b !important;
+  font: 900 20px/1 var(--font-game-readable);
+  letter-spacing: .025em;
+  text-shadow: 0 1px #fff;
+  box-shadow: 0 3px 0 #614d29, inset 0 1px #fff;
+}
+
+.arena .player-head > strong {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+  border: 3px solid #dac17b;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ec8e52, #a53222 72%);
+  color: #fff4c8;
+  font: 900 27px/1 var(--font-game-readable);
+  text-shadow: 0 2px #6c1a16;
+  box-shadow: 0 4px 0 #5e3d25, 0 7px 12px #0005, inset 0 0 0 2px #742b20;
+}
+
+.arena .player-head small,
+.arena .metrics span,
+.turn-indicator,
+.player-card.active .dice-rack::before {
+  font-family: var(--font-game-readable);
+}
+
+.arena .metrics {
+  gap: 8px;
+  margin: 17px 0 10px;
+}
+
+.arena .metrics span {
+  padding: 7px 10px;
+  border: 1px solid #8b784c;
+  border-radius: 3px;
+  background: #d9c78e;
+  color: #304235;
+  font: 800 9px/1 Georgia, serif;
+  box-shadow: 0 2px 0 #776338;
+}
+
+.arena .dice-rack {
+  min-height: 82px;
+  margin-top: 8px;
+  padding: 16px 9px 10px;
+  border-top: 1px dashed #877447;
+}
+
+.game[data-phase="bids"] .dice-rack {
+  opacity: .48;
+  filter: saturate(.65);
+}
+
+.arena .table {
+  font-family: var(--font-adventure-text);
+}
+
+.table #message strong {
+  color: #173d36;
+  font-size: 15px;
+  letter-spacing: .09em;
+}
+
+.table #message span {
+  display: inline-block;
+  max-width: 330px;
+  margin-top: 7px;
+  color: #29443e;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.played-slot small {
+  margin-top: 9px;
+  padding: 3px 7px;
+  border-radius: 10px;
+  background: #203b33;
+  color: #fff0c0;
+  font-family: var(--font-game-readable);
+}
+
+.bid-controls button {
+  border: 2px solid #4d3c24;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 25%, #fff5c9, #c5a75b);
+  color: #22392f;
+  font-family: Georgia, serif;
+  box-shadow: 0 4px 0 #57462a;
+  transition: transform .15s, filter .15s;
+}
+
+.bid-controls button:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.12);
+}
+
+.die.clickable {
+  outline: 3px solid #ffd36c;
+  box-shadow: inset -6px -7px 0 #0002, 4px 5px 0 #13243833, 0 0 16px #ffd85d;
+}
+
+@media(max-width:850px) {
+  .arena article.player-card {
+    min-height: 280px;
+    margin-top: 0;
+  }
+}
+
+@media(prefers-reduced-motion:reduce) {
+  .arena article.player-card.active,
+  .player-card.active .avatar-aura,
+  .turn-indicator b { animation: none !important; }
+}
+
+/* Parchemin central des paris et des plis */
+.arena .table {
+  position: relative;
+  align-self: center;
+  min-height: 430px;
+  margin-top: 112px;
+  padding: 46px 37px 39px;
+  overflow: visible;
+  border: 0;
+  border-radius: 15px 26px 18px 24px;
+  background:
+    radial-gradient(circle at 18% 22%, #8d71331a 0 1px, transparent 2px),
+    radial-gradient(circle at 73% 68%, #6e552715 0 1px, transparent 2px),
+    repeating-linear-gradient(3deg, #f7e9bd 0 4px, #ead49b 5px 6px, #f3e2b2 7px 12px);
+  background-size: 27px 27px, 39px 39px, auto;
+  box-shadow:
+    -9px 3px 0 #b99652,
+    9px -3px 0 #d7bb76,
+    0 10px 0 #795e34,
+    0 18px 0 #263a2f,
+    0 30px 42px #000b,
+    inset 0 0 0 2px #806832,
+    inset 0 0 38px #7b572d66;
+  color: #352e20;
+}
+
+.arena .table::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: -13px 14px auto;
+  height: 26px;
+  border: 2px solid #806232;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #f5e6b7, #b8914d 58%, #6d512c 60%, #d2ae68);
+  box-shadow: 0 4px 7px #0005, inset 0 2px #fff1bd;
+  pointer-events: none;
+}
+
+.arena .table::after {
+  content: "⚕";
+  position: absolute;
+  z-index: 8;
+  right: 21px;
+  bottom: -20px;
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border: 3px solid #e6b66c;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 27%, #d9563f, #7c201e 72%);
+  color: #ffe3a1;
+  font: 31px/1 Georgia, serif;
+  text-shadow: 0 2px #541314;
+  box-shadow: 0 5px 0 #4b2620, 0 9px 16px #0008, inset 0 0 0 2px #7e211d;
+}
+
+.arena .table > *:not(.stone-runes) {
+  position: relative;
+  z-index: 3;
+}
+
+.arena .stone-runes {
+  position: absolute;
+  z-index: 1;
+  inset: 21px 19px 22px;
+  border: 2px solid #657648;
+  border-radius: 11px 19px 13px 17px;
+  background: transparent;
+  box-shadow: inset 0 0 0 4px #d3bb7f99, inset 0 0 22px #40552d22;
+  animation: none;
+}
+
+.arena .stone-runes::before,
+.arena .stone-runes::after {
+  position: absolute;
+  top: -23px;
+  color: #49613c;
+  font: 42px/1 Georgia, serif;
+  text-shadow: 1px 2px #d9c587;
+}
+
+.arena .stone-runes::before {
+  content: "❧";
+  left: -14px;
+  transform: rotate(-25deg);
+}
+
+.arena .stone-runes::after {
+  content: "❧";
+  right: -14px;
+  transform: scaleX(-1) rotate(-25deg);
+}
+
+.arena .table .pulse {
+  height: 25px;
+  margin: 10px 0 21px;
+  opacity: .72;
+  filter: sepia(1) saturate(1.9) hue-rotate(335deg) drop-shadow(0 1px #fff0b8);
+}
+
+.arena .table #message {
+  min-height: 78px;
+  margin: 0 auto 10px;
+  padding: 14px 12px 12px;
+  border-top: 1px solid #9b814a;
+  border-bottom: 1px solid #9b814a;
+  background: linear-gradient(90deg, transparent, #fff3c56b 18% 82%, transparent);
+}
+
+.arena .table #message strong {
+  color: #3e4c2d;
+  font: 900 17px/1.15 var(--font-game-readable);
+  letter-spacing: .09em;
+  text-shadow: 0 1px #fff2c5;
+}
+
+.arena .table #message span {
+  color: #5b4c31;
+  font-size: 13px;
+}
+
+.arena .played {
+  min-height: 96px;
+  margin: 18px 0 14px;
+  padding: 6px;
+}
+
+.arena .bid-controls {
+  gap: 12px;
+  min-height: 53px;
+  padding: 7px 0 3px;
+}
+
+.arena .bid-controls button {
+  width: 46px;
+  height: 46px;
+  border: 2px solid #64502d;
+  background: radial-gradient(circle at 33% 26%, #fff2b9, #d5ae54 58%, #9a702e);
+  color: #25382c;
+  font: 900 17px/1 var(--font-game-readable);
+  box-shadow: 0 4px 0 #594324, 0 7px 10px #0005, inset 0 0 0 2px #f6dfa0;
+}
+
+.arena .bid-controls button:hover {
+  background: radial-gradient(circle at 33% 26%, #fffad7, #f0c65f 58%, #b3782c);
+  box-shadow: 0 4px 0 #594324, 0 7px 13px #0006, 0 0 18px #ffc653;
+}
+
+@media(max-width:850px) {
+  .arena .table {
+    min-height: 390px;
+    margin-top: 15px;
+    padding: 40px 25px 32px;
+  }
+}

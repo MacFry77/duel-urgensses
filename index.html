@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Duel Urgensses — jeu de dés</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="theme.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">LE GRAND JEU DE DÉS · ENTRE AMIS</p>
+        <h1>DUEL <span>URGENSSES</span></h1>
+      </div>
+      <button id="rulesButton" class="outline">RÈGLES</button>
+    </header>
+
+    <section id="lobby" class="panel lobby adventure-lobby">
+      <div class="lobby-fireflies" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="hero-copy">
+        <p class="kicker">QUE LE MEILLEUR GAGNE</p>
+        <div class="lobby-emblem" aria-hidden="true"><span>⚕</span></div>
+        <h2>Le duel d'Urgentiss'<br>peut commencer,<br><em>Réglez vos comptes ici.</em></h2>
+        <p class="lede">Choisissez votre champion, annoncez vos plis et défiez vos amis autour de la table sacrée.</p>
+      </div>
+      <div class="lobby-actions stone-panel">
+        <p class="form-title">PRÉPAREZ LE DUEL</p>
+        <label>PERSONNAGE DU JOUEUR 1<select id="p1Character"></select></label>
+        <label>PERSONNAGE DU JOUEUR 2<select id="p2Character"></select></label>
+        <label>NOMBRE DE MANCHES
+          <select id="roundCount">
+            <option value="1">1 manche</option>
+            <option value="2">2 manches</option>
+            <option value="3">3 manches</option>
+            <option value="4">4 manches</option>
+            <option value="5">5 manches</option>
+            <option value="6">6 manches</option>
+            <option value="7">7 manches</option>
+            <option value="8" selected>8 manches</option>
+          </select>
+        </label>
+        <button id="startButton" class="primary arena-button"><span>ENTRER DANS L'ARÈNE</span></button>
+        <small class="lobby-note">DÉS · AUDACE · RÈGLEMENT DE COMPTES</small>
+      </div>
+    </section>
+
+    <section id="game" class="game hidden">
+      <div class="status-strip">
+        <div><small>MANCHE</small><strong id="roundValue">1 / 8</strong></div>
+        <div><small>PLI</small><strong id="trickValue">1 / 1</strong></div>
+        <div><small>COULEUR DEMANDÉE</small><strong id="leadColor">—</strong></div>
+        <div><small>ÉTAT</small><strong id="phaseValue">PARIS</strong></div>
+      </div>
+
+      <section class="arena">
+        <div class="atmosphere" aria-hidden="true"><i></i><i></i><i></i><i></i><span></span></div>
+        <article class="player-card opponent" id="player1Card">
+          <div class="turn-indicator" aria-live="polite"><span>À VOUS DE JOUER</span><b>▼</b></div>
+          <div class="avatar-zone left-avatar" aria-hidden="true"><div class="avatar-aura"></div><img class="character-sprite" src="assets/characters/pascal-pirate.png" alt=""><div class="avatar-shadow"></div></div>
+          <div class="player-head"><div><h3 id="p1Label">Interne A</h3></div><strong id="p1Score">0</strong></div>
+          <div class="metrics"><span>PARI <b id="p1Bid">—</b></span><span>PLIS <b id="p1Tricks">0</b></span></div>
+          <div id="p1Dice" class="dice-rack"></div>
+        </article>
+
+        <div class="table">
+          <div class="stone-runes" aria-hidden="true"></div>
+          <div class="pulse"></div>
+          <p id="message">Chaque joueur annonce son nombre de plis.</p>
+          <div id="playedDice" class="played"></div>
+          <div id="bidControls" class="bid-controls"></div>
+          <button id="nextButton" class="primary hidden">PLI SUIVANT</button>
+        </div>
+
+        <article class="player-card" id="player2Card">
+          <div class="turn-indicator" aria-live="polite"><span>À VOUS DE JOUER</span><b>▼</b></div>
+          <div class="avatar-zone right-avatar" aria-hidden="true"><div class="avatar-aura"></div><img class="character-sprite" src="assets/characters/mathieu-luchador.png" alt=""><div class="avatar-shadow"></div></div>
+          <div class="player-head"><div><h3 id="p2Label">Interne B</h3></div><strong id="p2Score">0</strong></div>
+          <div class="metrics"><span>PARI <b id="p2Bid">—</b></span><span>PLIS <b id="p2Tricks">0</b></span></div>
+          <div id="p2Dice" class="dice-rack"></div>
+        </article>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="rulesDialog">
+    <button id="closeRules" class="dialog-close">×</button>
+    <p class="kicker">RÈGLES SIMPLIFIÉES</p>
+    <h2>Les règles du duel</h2>
+    <ol>
+      <li>Avant la partie, choisissez de 1 à 8 manches. La manche 1 donne 1 dé à chacun, la manche 2 en donne 2, et ainsi de suite jusqu’au nombre choisi.</li>
+      <li>Chaque joueur parie sur le nombre de plis qu’il remportera.</li>
+      <li>Le premier dé numérique impose sa couleur. Il faut la suivre si possible ; un dé spécial peut toujours être joué.</li>
+      <li>Le plus grand chiffre gagne. Le drapeau gris vaut zéro. Un symbole bat toujours un chiffre.</li>
+      <li><b>Urgentiste</b> bat Chirurgien, <b>Chirurgien</b> bat Anesthésiste, <b>Anesthésiste</b> bat Urgentiste. Si les trois apparaissent, <b>Urgentiste gagne</b>.</li>
+      <li>Pari exact : 20 points par pli. Pari exact de zéro : 10 × numéro de manche. Pari incorrect : aucun point perdu. Aucun bonus.</li>
+    </ol>
+    <div class="legend" id="legend"></div>
+  </dialog>
+  <script src="game.js"></script>
+</body>
+</html>
