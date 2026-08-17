@@ -1,0 +1,151 @@
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const { WebSocketServer, WebSocket } = require('ws');
+
+const PORT = Number(process.env.PORT) || 3000;
+const ROOT = __dirname;
+const COLORS = ['red', 'yellow', 'violet', 'gray', 'brown', 'green', 'blue'];
+const SPECIAL = new Set(['brown', 'green', 'blue']);
+const COUNTS = { red: 7, yellow: 7, violet: 8, gray: 8, brown: 1, green: 3, blue: 2 };
+const rooms = new Map();
+
+const mime = { '.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.ico':'image/x-icon','.json':'application/json; charset=utf-8' };
+const server = http.createServer((req, res) => {
+  const urlPath = decodeURIComponent((req.url || '/').split('?')[0]);
+  const relative = urlPath === '/' ? 'index.html' : urlPath.replace(/^\/+/, '');
+  const file = path.resolve(ROOT, relative);
+  if (!file.startsWith(ROOT) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
+    res.writeHead(404); return res.end('Introuvable');
+  }
+  res.writeHead(200, {'Content-Type': mime[path.extname(file).toLowerCase()] || 'application/octet-stream','Cache-Control':'no-cache'});
+  fs.createReadStream(file).pipe(res);
+});
+const wss = new WebSocketServer({ server });
+
+const id = () => crypto.randomBytes(8).toString('hex');
+const code = () => {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let value;
+  do { value = Array.from({length:5}, () => alphabet[crypto.randomInt(alphabet.length)]).join(''); } while (rooms.has(value));
+  return value;
+};
+const send = (ws, type, payload={}) => ws.readyState === WebSocket.OPEN && ws.send(JSON.stringify({type,...payload}));
+const shuffle = array => {
+  const result = [...array];
+  for (let i=result.length-1;i>0;i--) { const j=crypto.randomInt(i+1); [result[i],result[j]]=[result[j],result[i]]; }
+  return result;
+};
+const makePool = () => shuffle(Object.entries(COUNTS).flatMap(([color,n]) => Array.from({length:n},()=>({id:id(),color,face:null}))));
+const roll = die => {
+  if (SPECIAL.has(die.color)) die.face = crypto.randomInt(6) < 4 ? 'symbol' : 'flag';
+  else if (die.color === 'gray') die.face = crypto.randomInt(2) ? crypto.randomInt(1,7) : 'flag';
+  else die.face = crypto.randomInt(1,7);
+  return die;
+};
+const publicState = (room, viewerId) => ({
+  code: room.code, status: room.status, hostId: room.hostId, totalRounds: room.totalRounds,
+  round: room.round, trick: room.trick, phase: room.phase, leader: room.leader,
+  turn: room.turn, leadColor: room.leadColor, played: room.played,
+  message: room.message || '', viewerId,
+  viewerRole: room.spectators.some(s=>s.id===viewerId) ? 'spectator' : 'player',
+  spectators: room.spectators.map(s=>({id:s.id,name:s.name,connected:!!s.ws})),
+  chat: room.chat,
+  players: room.players.map(p => ({id:p.id,name:p.name,character:p.character,score:p.score,bid:p.bid,tricks:p.tricks,connected:!!p.ws,dice:p.id===viewerId?p.dice:p.dice.map(()=>({hidden:true}))}))
+});
+const members = room => [...room.players,...room.spectators];
+const broadcast = room => members(room).forEach(p => p.ws && send(p.ws,'state',{state:publicState(room,p.id)}));
+const fail = (ws, message) => send(ws,'error',{message});
+const currentPlayer = room => room.players[room.turn];
+
+function deal(room) {
+  const pool=makePool();
+  room.players.forEach(p=>{p.dice=pool.splice(0,room.round).map(roll);p.bid=null;p.tricks=0;});
+  room.phase='bids';room.turn=0;room.trick=1;room.played=[];room.leadColor=null;room.message='';
+}
+function legalDice(room, player) {
+  if (!room.leadColor) return player.dice;
+  const matching=player.dice.filter(d=>d.color===room.leadColor);
+  return matching.length ? [...matching,...player.dice.filter(d=>SPECIAL.has(d.color))] : player.dice;
+}
+function resolve(room) {
+  const plays=room.played;
+  const syms=plays.filter(p=>SPECIAL.has(p.die.color)&&p.die.face==='symbol');
+  if(syms.length){
+    const types=[...new Set(syms.map(p=>p.die.color))];
+    if(types.length===3)return syms.filter(p=>p.die.color==='brown').at(-1).player;
+    if(types.length===1)return syms.at(-1).player;
+    const beats={brown:'green',green:'blue',blue:'brown'};
+    const winningType=types.find(a=>types.some(b=>beats[a]===b));
+    return syms.filter(p=>p.die.color===winningType).at(-1).player;
+  }
+  let nums=plays.filter(p=>typeof p.die.face==='number');
+  if(room.leadColor) nums=nums.filter(p=>p.die.color===room.leadColor);
+  if(!nums.length)return plays.at(-1).player;
+  return nums.reduce((a,b)=>b.die.face>=a.die.face?b:a).player;
+}
+function scoreRound(room){room.players.forEach(p=>{if(p.bid===p.tricks)p.score+=p.bid===0?room.round*10:p.tricks*20;});}
+function nextStep(room){
+  if(room.players.every(p=>p.dice.length===0)){
+    scoreRound(room);
+    if(room.round===room.totalRounds){room.phase='over';room.status='finished';}
+    else{room.round++;deal(room);}
+  }else{room.trick++;room.phase='play';room.played=[];room.leadColor=null;room.turn=room.leader;}
+}
+function handle(ws, msg){
+  if(msg.type==='create'){
+    const roomCode=code(), playerId=id();
+    const room={code:roomCode,status:'lobby',hostId:playerId,totalRounds:Math.max(1,Math.min(8,Number(msg.rounds)||8)),round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[]};
+    if(msg.organizer)room.spectators.push({id:playerId,name:'Organisateur',ws});
+    else {const character=String(msg.character||'Personnage').slice(0,24);room.players.push({id:playerId,name:character,character,score:0,bid:null,tricks:0,dice:[],ws});}
+    rooms.set(roomCode,room);ws.room=roomCode;ws.playerId=playerId;send(ws,'session',{code:roomCode,playerId});broadcast(room);return;
+  }
+  if(msg.type==='join'){
+    const room=rooms.get(String(msg.code||'').toUpperCase());if(!room)return fail(ws,'Salle introuvable.');
+    let player=room.players.find(p=>p.id===msg.playerId), spectator=room.spectators.find(p=>p.id===msg.playerId);
+    if(player){player.ws=ws;}
+    else if(spectator){spectator.ws=ws;player=spectator;}
+    else{
+      if(room.status!=='lobby')return fail(ws,'La partie a déjà commencé.');
+      if(room.players.length>=6)return fail(ws,'Cette salle est complète.');
+      if(room.players.some(p=>p.character===msg.character))return fail(ws,'Ce personnage est déjà choisi.');
+      const character=String(msg.character||'Personnage').slice(0,24);player={id:id(),name:character,character,score:0,bid:null,tricks:0,dice:[],ws};room.players.push(player);
+    }
+    ws.room=room.code;ws.playerId=player.id;send(ws,'session',{code:room.code,playerId:player.id});broadcast(room);return;
+  }
+  const room=rooms.get(ws.room), player=room?.players.find(p=>p.id===ws.playerId), spectator=room?.spectators.find(p=>p.id===ws.playerId), actor=player||spectator;if(!room||!actor)return fail(ws,'Vous devez rejoindre une salle.');
+  if(msg.type==='chat'){
+    const text=String(msg.text||'').trim().slice(0,300);if(!text)return;
+    room.chat.push({id:id(),sender:actor.name,text,time:Date.now(),role:spectator?'spectator':'player'});if(room.chat.length>100)room.chat.shift();broadcast(room);return;
+  }
+  if(msg.type==='start'){
+    if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut lancer la partie.");
+    if(room.players.length<2)return fail(ws,'Il faut au moins deux joueurs.');
+    if(room.players.length*room.totalRounds>36)return fail(ws,`Avec ${room.players.length} joueurs, choisissez au maximum ${Math.floor(36/room.players.length)} manches.`);
+    room.status='playing';room.players.forEach(p=>p.score=0);room.round=1;room.leader=0;deal(room);broadcast(room);return;
+  }
+  if(!player)return fail(ws,'Vous observez cette partie et ne pouvez pas jouer.');
+  if(room.status!=='playing')return fail(ws,'La partie n’est pas en cours.');
+  if(currentPlayer(room)?.id!==player.id)return fail(ws,"Ce n'est pas votre tour.");
+  if(msg.type==='bid'&&room.phase==='bids'){
+    const bid=Number(msg.bid);if(!Number.isInteger(bid)||bid<0||bid>room.round)return fail(ws,'Pari invalide.');
+    player.bid=bid;
+    if(room.turn<room.players.length-1)room.turn++;else{room.phase='play';room.turn=room.leader;}
+    broadcast(room);return;
+  }
+  if(msg.type==='play'&&room.phase==='play'){
+    const die=legalDice(room,player).find(d=>d.id===msg.dieId);if(!die)return fail(ws,'Ce dé ne peut pas être joué.');
+    player.dice=player.dice.filter(d=>d.id!==die.id);
+    if(!room.leadColor&&!SPECIAL.has(die.color))room.leadColor=die.color;
+    room.played.push({player:room.turn,die});
+    if(room.played.length===room.players.length){const winner=resolve(room);room.players[winner].tricks++;room.leader=winner;room.turn=winner;room.phase='result';}
+    else room.turn=(room.turn+1)%room.players.length;
+    broadcast(room);return;
+  }
+  if(msg.type==='next'&&room.phase==='result'){nextStep(room);broadcast(room);return;}
+  fail(ws,'Action impossible.');
+}
+wss.on('connection',ws=>{ws.on('message',raw=>{try{handle(ws,JSON.parse(raw));}catch(e){console.error(e);fail(ws,'Action invalide.');}});ws.on('close',()=>{const room=rooms.get(ws.room),p=room&&members(room).find(x=>x.id===ws.playerId);if(p){p.ws=null;broadcast(room);}});});
+setInterval(()=>{for(const [roomCode,room] of rooms)if(members(room).every(p=>!p.ws))rooms.delete(roomCode);},30*60*1000).unref();
+server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`));

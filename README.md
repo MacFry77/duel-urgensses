@@ -1,23 +1,45 @@
 # Duel Urgensses
 
-Prototype local d’un duel de dés médical, basé sur les règles simplifiées fournies.
+Jeu de dés multijoueur en ligne pour 2 à 6 participants. Chaque joueur utilise son propre navigateur, crée ou rejoint une salle privée, choisit un personnage et joue à tour de rôle. Le nom du personnage sert automatiquement d’identité dans la partie et dans le chat.
 
-## Lancer
+## Lancer localement
 
-Ouvrir `index.html` dans un navigateur, ou servir le dossier avec un serveur statique.
+```bash
+npm install
+npm start
+```
 
-## Adaptations
+Ouvrir ensuite `http://localhost:3000`. Pour simuler plusieurs joueurs, utiliser plusieurs profils de navigateur ou une fenêtre privée.
 
-- Minotaure marron → Urgentiste (mallette médicale)
-- Griffon vert → Chirurgien (bloc opératoire et bistouri)
-- Sirène bleue → Anesthésiste (masque et circuit d’anesthésie)
+## Fonctionnement multijoueur
 
-Chaque dé spécial possède 4 faces métier et 2 faces drapeau blanc, conformément au matériel d’origine.
+- serveur Node.js et WebSocket autoritaire ;
+- salles privées avec code à cinq caractères ;
+- reconnexion grâce à une session enregistrée dans le navigateur ;
+- dés adverses masqués ;
+- validation serveur des paris, couleurs et tours ;
+- 2 à 6 joueurs, dans la limite des 36 dés physiques ;
+- interface adaptative pour ordinateur et smartphone.
+- mode organisateur/spectateur : création et lancement sans occuper un siège ni voir les dés cachés ;
+- chat commun avec pseudonyme, disponible avant et pendant la partie.
 
-Si les trois symboles métier apparaissent dans un même pli, l’Urgentiste remporte le pli.
+Pour respecter le matériel, `nombre de joueurs × nombre maximal de manches` ne peut pas dépasser 36. Exemples : 4 joueurs peuvent jouer 8 manches, 5 joueurs jusqu’à 7 manches et 6 joueurs jusqu’à 6 manches.
 
-L’organisateur choisit avant la partie entre 1 et 8 manches. La manche numéro N distribue N dés à chaque joueur.
-- Aucun retrait de points en cas de pari incorrect
-- Aucun point bonus lié aux dés spéciaux
+## Règles adaptées
 
-Ce prototype fonctionne en duel local à tours masqués. Le moteur de règles est séparé de l’interface et pourra être relié à Supabase pour des salles privées en ligne.
+- Minotaure marron → Urgentiste ;
+- Griffon vert → Chirurgien ;
+- Sirène bleue → Anesthésiste ;
+- chaque dé spécial possède 4 faces métier et 2 drapeaux blancs ;
+- si les trois symboles apparaissent dans un même pli, l’Urgentiste gagne ;
+- aucun retrait de points en cas de pari incorrect et aucun bonus.
+
+## Déploiement Render
+
+Le fichier `render.yaml` configure un service Node.js gratuit dans la région de Francfort. Dans Render, le dépôt peut être déployé comme **Blueprint** ou comme **Web Service** avec :
+
+- Build Command : `npm install`
+- Start Command : `npm start`
+- Health Check Path : `/`
+
+Le serveur utilise automatiquement la variable `PORT` fournie par Render.

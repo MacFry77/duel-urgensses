@@ -6,6 +6,7 @@
   <title>Duel Urgensses — jeu de dés</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="multiplayer.css">
 </head>
 <body>
   <main class="shell">
@@ -26,10 +27,9 @@
         <p class="lede">Choisissez votre champion, annoncez vos plis et défiez vos amis autour de la table sacrée.</p>
       </div>
       <div class="lobby-actions stone-panel">
-        <p class="form-title">PRÉPAREZ LE DUEL</p>
-        <label>PERSONNAGE DU JOUEUR 1<select id="p1Character"></select></label>
-        <label>PERSONNAGE DU JOUEUR 2<select id="p2Character"></select></label>
-        <label>NOMBRE DE MANCHES
+        <p class="form-title">REJOIGNEZ L’EXPÉDITION</p>
+        <label>VOTRE PERSONNAGE<select id="characterSelect"></select></label>
+        <label id="roundsLabel">NOMBRE DE MANCHES
           <select id="roundCount">
             <option value="1">1 manche</option>
             <option value="2">2 manches</option>
@@ -41,8 +41,28 @@
             <option value="8" selected>8 manches</option>
           </select>
         </label>
-        <button id="startButton" class="primary arena-button"><span>ENTRER DANS L'ARÈNE</span></button>
+        <div class="lobby-choice">
+          <button id="createButton" class="primary arena-button"><span>CRÉER UNE SALLE</span></button>
+          <button id="organizerButton" class="spectator-button"><span>CRÉER COMME ORGANISATEUR / SPECTATEUR</span></button>
+          <span>OU</span>
+          <div class="join-row"><input id="roomCodeInput" maxlength="5" placeholder="CODE"><button id="joinButton" class="outline">REJOINDRE</button></div>
+        </div>
+        <p id="connectionStatus" class="connection-status">Connexion au serveur…</p>
         <small class="lobby-note">DÉS · AUDACE · RÈGLEMENT DE COMPTES</small>
+      </div>
+    </section>
+
+    <section id="waitingRoom" class="panel waiting-room hidden">
+      <div>
+        <p class="kicker">SALLE PRIVÉE</p>
+        <h2>Code : <button id="copyCode" class="room-code" title="Copier le code">—</button></h2>
+        <p>Envoyez ce code à vos amis. Chaque joueur rejoint depuis son propre navigateur.</p>
+      </div>
+      <div class="stone-panel">
+        <p class="form-title">JOUEURS CONNECTÉS</p>
+        <div id="waitingPlayers" class="waiting-players"></div>
+        <button id="onlineStartButton" class="primary arena-button hidden">LANCER LA PARTIE</button>
+        <p id="waitingHint" class="connection-status"></p>
       </div>
     </section>
 
@@ -54,16 +74,8 @@
         <div><small>ÉTAT</small><strong id="phaseValue">PARIS</strong></div>
       </div>
 
-      <section class="arena">
+      <section class="arena multiplayer-arena">
         <div class="atmosphere" aria-hidden="true"><i></i><i></i><i></i><i></i><span></span></div>
-        <article class="player-card opponent" id="player1Card">
-          <div class="turn-indicator" aria-live="polite"><span>À VOUS DE JOUER</span><b>▼</b></div>
-          <div class="avatar-zone left-avatar" aria-hidden="true"><div class="avatar-aura"></div><img class="character-sprite" src="assets/characters/pascal-pirate.png" alt=""><div class="avatar-shadow"></div></div>
-          <div class="player-head"><div><h3 id="p1Label">Interne A</h3></div><strong id="p1Score">0</strong></div>
-          <div class="metrics"><span>PARI <b id="p1Bid">—</b></span><span>PLIS <b id="p1Tricks">0</b></span></div>
-          <div id="p1Dice" class="dice-rack"></div>
-        </article>
-
         <div class="table">
           <div class="stone-runes" aria-hidden="true"></div>
           <div class="pulse"></div>
@@ -72,16 +84,16 @@
           <div id="bidControls" class="bid-controls"></div>
           <button id="nextButton" class="primary hidden">PLI SUIVANT</button>
         </div>
-
-        <article class="player-card" id="player2Card">
-          <div class="turn-indicator" aria-live="polite"><span>À VOUS DE JOUER</span><b>▼</b></div>
-          <div class="avatar-zone right-avatar" aria-hidden="true"><div class="avatar-aura"></div><img class="character-sprite" src="assets/characters/mathieu-luchador.png" alt=""><div class="avatar-shadow"></div></div>
-          <div class="player-head"><div><h3 id="p2Label">Interne B</h3></div><strong id="p2Score">0</strong></div>
-          <div class="metrics"><span>PARI <b id="p2Bid">—</b></span><span>PLIS <b id="p2Tricks">0</b></span></div>
-          <div id="p2Dice" class="dice-rack"></div>
-        </article>
+        <div id="playersGrid" class="players-grid"></div>
       </section>
     </section>
+    <aside id="chatPanel" class="chat-panel hidden" aria-label="Chat de la partie">
+      <button id="chatHeader" class="chat-header"><span>💬 CHAT DE LA SALLE</span><b id="chatBadge"></b><i>⌄</i></button>
+      <div id="chatBody" class="chat-body">
+        <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
+        <form id="chatForm" class="chat-form"><input id="chatInput" maxlength="300" autocomplete="off" placeholder="Écrire un message…"><button>ENVOYER</button></form>
+      </div>
+    </aside>
   </main>
 
   <dialog id="rulesDialog">
