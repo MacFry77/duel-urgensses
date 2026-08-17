@@ -125,6 +125,11 @@ function handle(ws, msg){
     if(room.players.length*room.totalRounds>36)return fail(ws,`Avec ${room.players.length} joueurs, choisissez au maximum ${Math.floor(36/room.players.length)} manches.`);
     room.status='playing';room.players.forEach(p=>p.score=0);room.round=1;room.leader=0;deal(room);broadcast(room);return;
   }
+  if(msg.type==='reset'){
+    if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut recommencer la partie.");
+    room.status='lobby';room.phase='lobby';room.round=1;room.trick=1;room.turn=0;room.leader=0;room.leadColor=null;room.played=[];
+    room.players.forEach(p=>{p.score=0;p.bid=null;p.tricks=0;p.dice=[];});broadcast(room);return;
+  }
   if(!player)return fail(ws,'Vous observez cette partie et ne pouvez pas jouer.');
   if(room.status!=='playing')return fail(ws,'La partie n’est pas en cours.');
   if(currentPlayer(room)?.id!==player.id)return fail(ws,"Ce n'est pas votre tour.");
