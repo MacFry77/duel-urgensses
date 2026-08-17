@@ -120,7 +120,7 @@ function handle(ws, msg){
   }
   if(msg.type==='leave'){
     if(actor.id===room.hostId){members(room).filter(m=>m.id!==actor.id).forEach(m=>m.ws&&send(m.ws,'closed',{message:'La salle a été fermée par son créateur.'}));rooms.delete(room.code);}
-    else{room.players=room.players.filter(p=>p.id!==actor.id);room.spectators=room.spectators.filter(p=>p.id!==actor.id);broadcast(room);}
+    else{room.players=room.players.filter(p=>p.id!==actor.id);room.spectators=room.spectators.filter(p=>p.id!==actor.id);if(room.status==='playing'){room.status='lobby';room.phase='lobby';room.round=1;room.trick=1;room.turn=0;room.leader=0;room.leadColor=null;room.played=[];room.players.forEach(p=>{p.score=0;p.bid=null;p.tricks=0;p.dice=[];});}broadcast(room);}
     ws.room=null;ws.playerId=null;send(ws,'left');return;
   }
   if(msg.type==='start'){
