@@ -74,8 +74,13 @@
         <div><small>COULEUR DEMANDÉE</small><strong id="leadColor">—</strong></div>
         <div><small>ÉTAT</small><strong id="phaseValue">PARIS</strong></div>
       </div>
+      <nav id="mobileTabs" class="mobile-tabs" aria-label="Affichage mobile">
+        <button data-view="table" class="selected">TABLE</button>
+        <button data-view="hand">MES DÉS</button>
+        <button data-view="players">JOUEURS</button>
+      </nav>
 
-      <section class="arena multiplayer-arena">
+      <section class="arena multiplayer-arena" data-mobile-view="table">
         <div class="atmosphere" aria-hidden="true"><i></i><i></i><i></i><i></i><span></span></div>
         <div class="table">
           <div class="stone-runes" aria-hidden="true"></div>

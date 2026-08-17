@@ -12,3 +12,14 @@
 #resetButton{margin-top:14px;background:#2e6e5f;box-shadow:4px 4px 0 #173c34}
 #newRoomButton{margin-top:10px;background:#b85a38;box-shadow:4px 4px 0 #57281c;font-size:10px}
 .cancel-waiting{width:100%;margin-top:12px;padding:11px;border:1px solid #d4aaa0;background:#251b1a;color:#f0c9c0;font-size:9px}.cancel-waiting:hover{background:#492b26;color:white}
+.mobile-tabs{display:none}
+@media(max-width:620px){
+  .mobile-tabs{position:sticky;top:0;z-index:30;display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:8px;padding:4px;border:1px solid #bd9d49;background:#102b27;box-shadow:0 6px 18px #0008}
+  .mobile-tabs button{padding:12px 4px;border:0;background:#203f38;color:#b7d5cd;font-size:10px}.mobile-tabs button.selected{background:#f0c565;color:#162d28;box-shadow:inset 0 -3px #a95c32}
+  .game{margin-top:10px}.status-strip{position:relative;grid-template-columns:repeat(4,1fr)}.status-strip div{padding:7px 4px;text-align:center}.status-strip small{font-size:6px;letter-spacing:.06em}.status-strip strong{font-size:10px}
+  .arena.multiplayer-arena{display:block!important;min-height:0!important;margin-top:6px!important;padding:10px!important}.multiplayer-arena>.table{display:none!important;position:relative!important;min-height:350px!important;padding:18px 14px!important}.players-grid{display:none!important}
+  .multiplayer-arena[data-mobile-view="table"]>.table{display:block!important}.multiplayer-arena[data-mobile-view="hand"]>.players-grid,.multiplayer-arena[data-mobile-view="players"]>.players-grid{display:grid!important}
+  .multiplayer-arena[data-mobile-view="hand"] .player-card:not(.is-me){display:none!important}.multiplayer-arena[data-mobile-view="players"] .dice-rack{display:none}.multiplayer-arena[data-mobile-view="players"] .player-card{min-height:120px!important}
+  .arena .players-grid article.player-card{margin-top:0!important;min-height:220px!important}.players-grid .avatar-zone{display:none}.players-grid .turn-indicator{top:-4px;right:8px;left:auto;transform:none}.players-grid .player-head{padding-top:34px}.players-grid .dice-rack{min-height:70px}.table .pulse{margin-top:8px!important}.arena .played{margin:10px 0!important;min-height:76px!important}.arena .table #message{min-height:62px!important}
+  .chat-panel{width:calc(100vw - 24px)}
+}
