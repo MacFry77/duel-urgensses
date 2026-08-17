@@ -130,6 +130,14 @@ function handle(ws, msg){
     room.status='lobby';room.phase='lobby';room.round=1;room.trick=1;room.turn=0;room.leader=0;room.leadColor=null;room.played=[];
     room.players.forEach(p=>{p.score=0;p.bid=null;p.tricks=0;p.dice=[];});broadcast(room);return;
   }
+  if(msg.type==='newRoom'){
+    if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut créer une nouvelle salle.");
+    const organizer=!!spectator,roomCode=code(),playerId=id();actor.ws=null;broadcast(room);
+    const fresh={code:roomCode,status:'lobby',hostId:playerId,totalRounds:room.totalRounds,round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[]};
+    if(organizer)fresh.spectators.push({id:playerId,name:'Organisateur',ws});
+    else fresh.players.push({id:playerId,name:actor.character,character:actor.character,score:0,bid:null,tricks:0,dice:[],ws});
+    rooms.set(roomCode,fresh);ws.room=roomCode;ws.playerId=playerId;send(ws,'session',{code:roomCode,playerId});broadcast(fresh);return;
+  }
   if(!player)return fail(ws,'Vous observez cette partie et ne pouvez pas jouer.');
   if(room.status!=='playing')return fail(ws,'La partie n’est pas en cours.');
   if(currentPlayer(room)?.id!==player.id)return fail(ws,"Ce n'est pas votre tour.");
