@@ -80,8 +80,7 @@ function resolve(room) {
     const winningType=types.find(a=>types.some(b=>beats[a]===b));
     return syms.filter(p=>p.die.color===winningType).at(-1).player;
   }
-  let nums=plays.filter(p=>typeof p.die.face==='number');
-  if(room.leadColor) nums=nums.filter(p=>p.die.color===room.leadColor);
+  const nums=plays.filter(p=>typeof p.die.face==='number');
   if(!nums.length)return plays.at(-1).player;
   return nums.reduce((a,b)=>b.die.face>=a.die.face?b:a).player;
 }
@@ -118,6 +117,11 @@ function handle(ws, msg){
   if(msg.type==='chat'){
     const text=String(msg.text||'').trim().slice(0,300);if(!text)return;
     room.chat.push({id:id(),sender:actor.name,text,time:Date.now(),role:spectator?'spectator':'player'});if(room.chat.length>100)room.chat.shift();broadcast(room);return;
+  }
+  if(msg.type==='leave'){
+    if(actor.id===room.hostId){members(room).filter(m=>m.id!==actor.id).forEach(m=>m.ws&&send(m.ws,'closed',{message:'La salle a été fermée par son créateur.'}));rooms.delete(room.code);}
+    else{room.players=room.players.filter(p=>p.id!==actor.id);room.spectators=room.spectators.filter(p=>p.id!==actor.id);broadcast(room);}
+    ws.room=null;ws.playerId=null;send(ws,'left');return;
   }
   if(msg.type==='start'){
     if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut lancer la partie.");
@@ -161,4 +165,5 @@ function handle(ws, msg){
 }
 wss.on('connection',ws=>{ws.on('message',raw=>{try{handle(ws,JSON.parse(raw));}catch(e){console.error(e);fail(ws,'Action invalide.');}});ws.on('close',()=>{const room=rooms.get(ws.room),p=room&&members(room).find(x=>x.id===ws.playerId);if(p){p.ws=null;broadcast(room);}});});
 setInterval(()=>{for(const [roomCode,room] of rooms)if(members(room).every(p=>!p.ws))rooms.delete(roomCode);},30*60*1000).unref();
-server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`));
+if(require.main===module)server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`));
+module.exports={resolve};

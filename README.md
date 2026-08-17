@@ -32,6 +32,7 @@ Pour respecter le matériel, `nombre de joueurs × nombre maximal de manches` ne
 - Sirène bleue → Anesthésiste ;
 - chaque dé spécial possède 4 faces métier et 2 drapeaux blancs ;
 - si les trois symboles apparaissent dans un même pli, l’Urgentiste gagne ;
+- entre dés numériques, la plus grande valeur gagne toutes couleurs confondues ; la couleur demandée contraint seulement le choix du dé ;
 - aucun retrait de points en cas de pari incorrect et aucun bonus.
 
 ## Déploiement Render

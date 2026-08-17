@@ -11,3 +11,4 @@
 .leave-room{position:fixed;z-index:49;left:16px;bottom:14px;padding:9px 12px;border:1px solid #a6c9c0;background:#0b211fd9;color:#c9e9e1;font-size:9px;box-shadow:0 4px 12px #0008}.leave-room:hover{color:white;border-color:white}
 #resetButton{margin-top:14px;background:#2e6e5f;box-shadow:4px 4px 0 #173c34}
 #newRoomButton{margin-top:10px;background:#b85a38;box-shadow:4px 4px 0 #57281c;font-size:10px}
+.cancel-waiting{width:100%;margin-top:12px;padding:11px;border:1px solid #d4aaa0;background:#251b1a;color:#f0c9c0;font-size:9px}.cancel-waiting:hover{background:#492b26;color:white}
