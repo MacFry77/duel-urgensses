@@ -163,7 +163,8 @@ function handle(ws, msg){
   if(msg.type==='next'&&room.phase==='result'){nextStep(room);broadcast(room);return;}
   fail(ws,'Action impossible.');
 }
-wss.on('connection',ws=>{ws.on('message',raw=>{try{handle(ws,JSON.parse(raw));}catch(e){console.error(e);fail(ws,'Action invalide.');}});ws.on('close',()=>{const room=rooms.get(ws.room),p=room&&members(room).find(x=>x.id===ws.playerId);if(p){p.ws=null;broadcast(room);}});});
+wss.on('connection',ws=>{ws.isAlive=true;ws.on('pong',()=>ws.isAlive=true);ws.on('message',raw=>{try{handle(ws,JSON.parse(raw));}catch(e){console.error(e);fail(ws,'Action invalide.');}});ws.on('close',()=>{const room=rooms.get(ws.room),p=room&&members(room).find(x=>x.id===ws.playerId);if(p){p.ws=null;broadcast(room);}});});
+setInterval(()=>{wss.clients.forEach(ws=>{if(!ws.isAlive)return ws.terminate();ws.isAlive=false;ws.ping();});},25000).unref();
 setInterval(()=>{for(const [roomCode,room] of rooms)if(members(room).every(p=>!p.ws))rooms.delete(roomCode);},30*60*1000).unref();
 if(require.main===module)server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`));
 module.exports={resolve};
