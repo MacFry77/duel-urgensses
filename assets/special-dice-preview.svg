@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500">
+  <defs>
+    <filter id="shadow" x="-30%" y="-30%" width="170%" height="180%"><feDropShadow dx="0" dy="14" stdDeviation="10" flood-color="#000" flood-opacity=".42"/></filter>
+    <linearGradient id="bg" x2="0" y2="1"><stop stop-color="#163a35"/><stop offset="1" stop-color="#071a20"/></linearGradient>
+  </defs>
+  <rect width="1200" height="500" rx="30" fill="url(#bg)"/>
+  <text x="600" y="65" text-anchor="middle" fill="#ffe3a0" font-family="Georgia,serif" font-size="31" font-weight="bold" letter-spacing="5">NOUVEAUX DÉS SPÉCIAUX</text>
+  <g transform="translate(90 120)">
+    <rect width="270" height="270" rx="38" fill="#6a302b" filter="url(#shadow)"/><path d="M0 220Q135 270 270 220V270H0Z" fill="#000" opacity=".16"/>
+    <g transform="translate(61 52) scale(3.1)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 8v10a9 9 0 0 0 18 0V8"/><path d="M9 8h8M27 8h8M22 28v3a8 8 0 0 0 16 0v-2"/><circle cx="38" cy="25" r="4"/></g>
+    <text x="135" y="325" text-anchor="middle" fill="#fff0c3" font-family="Arial,sans-serif" font-size="24" font-weight="bold">URGENTISTE</text><text x="135" y="355" text-anchor="middle" fill="#d7b8a5" font-family="Arial,sans-serif" font-size="16">STÉTHOSCOPE</text>
+  </g>
+  <g transform="translate(465 120)">
+    <rect width="270" height="270" rx="38" fill="#16723d" filter="url(#shadow)"/><path d="M0 220Q135 270 270 220V270H0Z" fill="#000" opacity=".16"/>
+    <g transform="translate(61 52) scale(3.1)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 41l3 2 19-21-3-4z"/><path d="M26 18L39 2v5c-1 6-5 12-10 15z" fill="#fff"/><path d="M10 39l17-19"/></g>
+    <text x="135" y="325" text-anchor="middle" fill="#fff0c3" font-family="Arial,sans-serif" font-size="24" font-weight="bold">CHIRURGIEN</text><text x="135" y="355" text-anchor="middle" fill="#b7dbc3" font-family="Arial,sans-serif" font-size="16">BISTOURI</text>
+  </g>
+  <g transform="translate(840 120)">
+    <rect width="270" height="270" rx="38" fill="#17669b" filter="url(#shadow)"/><path d="M0 220Q135 270 270 220V270H0Z" fill="#000" opacity=".16"/>
+    <g transform="translate(61 52) scale(3.1)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 29l15-15 7 7-15 15z"/><path d="M33 18L44 7M10 25l5 5M20 35l5 5M17 33L9 41M5 37l8 8"/><path d="M19 29l4 4M22 26l4 4M25 23l4 4"/></g>
+    <text x="135" y="325" text-anchor="middle" fill="#fff0c3" font-family="Arial,sans-serif" font-size="24" font-weight="bold">ANESTHÉSISTE</text><text x="135" y="355" text-anchor="middle" fill="#b9d7e9" font-family="Arial,sans-serif" font-size="16">SERINGUE</text>
+  </g>
+</svg>

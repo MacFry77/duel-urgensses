@@ -16,7 +16,7 @@
         <p class="eyebrow">LE GRAND JEU DE DÉS · ENTRE AMIS</p>
         <h1>DUEL <span>URGENSSES</span></h1>
       </div>
-      <div class="top-actions"><button id="leaveButton" class="leave-room hidden">QUITTER LA PARTIE</button><button id="rulesButton" class="outline">RÈGLES</button></div>
+      <div class="top-actions"><button id="leaveButton" class="leave-room hidden">QUITTER LA PARTIE</button><button id="leaderboardButton" class="outline hall-button">HALL OF FAME</button><button id="rulesButton" class="outline">RÈGLES</button></div>
     </header>
 
     <section id="lobby" class="panel lobby adventure-lobby">
@@ -114,6 +114,13 @@
       <li>Pari exact : 20 points par pli. Pari exact de zéro : 10 × numéro de manche. Pari incorrect : aucun point perdu. Aucun bonus.</li>
     </ol>
     <div class="legend" id="legend"></div>
+  </dialog>
+  <dialog id="leaderboardDialog" class="leaderboard-dialog">
+    <button id="closeLeaderboard" class="dialog-close">×</button>
+    <p class="kicker">LES LÉGENDES DE L’ARÈNE</p>
+    <h2>Hall of Fame</h2>
+    <p class="leaderboard-intro">Chaque victoire fait progresser le personnage joué, quel que soit le navigateur utilisé.</p>
+    <div id="leaderboardBody"></div>
   </dialog>
   <script src="game.js"></script>
 </body>

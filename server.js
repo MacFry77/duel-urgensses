@@ -10,10 +10,26 @@ const COLORS = ['red', 'yellow', 'violet', 'gray', 'brown', 'green', 'blue'];
 const SPECIAL = new Set(['brown', 'green', 'blue']);
 const COUNTS = { red: 7, yellow: 7, violet: 8, gray: 8, brown: 1, green: 3, blue: 2 };
 const rooms = new Map();
+const DATA_DIR = path.join(ROOT, 'data');
+const LEADERBOARD_FILE = process.env.LEADERBOARD_FILE || path.join(DATA_DIR, 'leaderboard.json');
+const SUPABASE_URL = String(process.env.SUPABASE_URL || '').replace(/\/$/, '');
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 const mime = { '.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.ico':'image/x-icon','.json':'application/json; charset=utf-8' };
-const server = http.createServer((req, res) => {
+const readLocalResults = () => { try { return JSON.parse(fs.readFileSync(LEADERBOARD_FILE, 'utf8')); } catch { return []; } };
+const writeLocalResults = rows => { fs.mkdirSync(path.dirname(LEADERBOARD_FILE), {recursive:true}); fs.writeFileSync(LEADERBOARD_FILE, JSON.stringify(rows.slice(-5000), null, 2)); };
+async function readResults(){
+  if(SUPABASE_URL&&SUPABASE_KEY){const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_results?select=character,result,score,tricks,played_at&order=played_at.desc&limit=5000`,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}});if(response.ok)return response.json();console.error('Lecture Supabase impossible :',response.status);}
+  return readLocalResults();
+}
+async function saveResults(rows){
+  if(SUPABASE_URL&&SUPABASE_KEY){const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_results`,{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(rows)});if(response.ok)return;console.error('Écriture Supabase impossible :',response.status);}
+  writeLocalResults([...readLocalResults(),...rows]);
+}
+const aggregateResults = rows => [...rows.reduce((map,row)=>{const value=map.get(row.character)||{character:row.character,games:0,wins:0,losses:0,draws:0,points:0,tricks:0};value.games++;value[row.result==='win'?'wins':row.result==='draw'?'draws':'losses']++;value.points+=Number(row.score)||0;value.tricks+=Number(row.tricks)||0;map.set(row.character,value);return map;},new Map()).values()].map(r=>({...r,winRate:Math.round(r.wins/r.games*100)})).sort((a,b)=>b.wins-a.wins||b.winRate-a.winRate||b.points-a.points||a.character.localeCompare(b.character,'fr'));
+const server = http.createServer(async (req, res) => {
   const urlPath = decodeURIComponent((req.url || '/').split('?')[0]);
+  if(urlPath==='/api/leaderboard') { try { const rows=aggregateResults(await readResults());res.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});return res.end(JSON.stringify(rows)); } catch(error){console.error(error);res.writeHead(500);return res.end('Classement indisponible');} }
   const relative = urlPath === '/' ? 'index.html' : urlPath.replace(/^\/+/, '');
   const file = path.resolve(ROOT, relative);
   if (!file.startsWith(ROOT) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
@@ -85,17 +101,21 @@ function resolve(room) {
   return nums.reduce((a,b)=>b.die.face>=a.die.face?b:a).player;
 }
 function scoreRound(room){room.players.forEach(p=>{if(p.bid===p.tricks)p.score+=p.bid===0?room.round*10:p.tricks*20;});}
+function recordFinishedGame(room){
+  if(room.resultRecorded)return;room.resultRecorded=true;const best=Math.max(...room.players.map(p=>p.score)),winners=room.players.filter(p=>p.score===best);
+  const now=new Date().toISOString(),gameId=id();const rows=room.players.map(p=>({game_id:gameId,character:p.character,result:winners.length>1&&p.score===best?'draw':p.score===best?'win':'loss',score:p.score,tricks:p.totalTricks||0,played_at:now}));saveResults(rows).catch(console.error);
+}
 function nextStep(room){
   if(room.players.every(p=>p.dice.length===0)){
     scoreRound(room);
-    if(room.round===room.totalRounds){room.phase='over';room.status='finished';}
+    if(room.round===room.totalRounds){room.phase='over';room.status='finished';recordFinishedGame(room);}
     else{room.round++;deal(room);}
   }else{room.trick++;room.phase='play';room.played=[];room.leadColor=null;room.turn=room.leader;}
 }
 function handle(ws, msg){
   if(msg.type==='create'){
     const roomCode=code(), playerId=id();
-    const room={code:roomCode,status:'lobby',hostId:playerId,totalRounds:Math.max(1,Math.min(8,Number(msg.rounds)||8)),round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[]};
+    const room={code:roomCode,status:'lobby',hostId:playerId,totalRounds:Math.max(1,Math.min(8,Number(msg.rounds)||8)),round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[],resultRecorded:false};
     if(msg.organizer)room.spectators.push({id:playerId,name:'Organisateur',ws});
     else {const character=String(msg.character||'Personnage').slice(0,24);room.players.push({id:playerId,name:character,character,score:0,bid:null,tricks:0,dice:[],ws});}
     rooms.set(roomCode,room);ws.room=roomCode;ws.playerId=playerId;send(ws,'session',{code:roomCode,playerId});broadcast(room);return;
@@ -127,17 +147,17 @@ function handle(ws, msg){
     if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut lancer la partie.");
     if(room.players.length<2)return fail(ws,'Il faut au moins deux joueurs.');
     if(room.players.length*room.totalRounds>36)return fail(ws,`Avec ${room.players.length} joueurs, choisissez au maximum ${Math.floor(36/room.players.length)} manches.`);
-    room.status='playing';room.players.forEach(p=>p.score=0);room.round=1;room.leader=0;deal(room);broadcast(room);return;
+    room.status='playing';room.resultRecorded=false;room.players.forEach(p=>{p.score=0;p.totalTricks=0});room.round=1;room.leader=0;deal(room);broadcast(room);return;
   }
   if(msg.type==='reset'){
     if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut recommencer la partie.");
-    room.status='lobby';room.phase='lobby';room.round=1;room.trick=1;room.turn=0;room.leader=0;room.leadColor=null;room.played=[];
+    room.status='lobby';room.phase='lobby';room.round=1;room.trick=1;room.turn=0;room.leader=0;room.leadColor=null;room.played=[];room.resultRecorded=false;
     room.players.forEach(p=>{p.score=0;p.bid=null;p.tricks=0;p.dice=[];});broadcast(room);return;
   }
   if(msg.type==='newRoom'){
     if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut créer une nouvelle salle.");
     const organizer=!!spectator,roomCode=code(),playerId=id();actor.ws=null;broadcast(room);
-    const fresh={code:roomCode,status:'lobby',hostId:playerId,totalRounds:room.totalRounds,round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[]};
+    const fresh={code:roomCode,status:'lobby',hostId:playerId,totalRounds:room.totalRounds,round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[],resultRecorded:false};
     if(organizer)fresh.spectators.push({id:playerId,name:'Organisateur',ws});
     else fresh.players.push({id:playerId,name:actor.character,character:actor.character,score:0,bid:null,tricks:0,dice:[],ws});
     rooms.set(roomCode,fresh);ws.room=roomCode;ws.playerId=playerId;send(ws,'session',{code:roomCode,playerId});broadcast(fresh);return;
@@ -156,7 +176,7 @@ function handle(ws, msg){
     player.dice=player.dice.filter(d=>d.id!==die.id);
     if(!room.leadColor&&!SPECIAL.has(die.color))room.leadColor=die.color;
     room.played.push({player:room.turn,die});
-    if(room.played.length===room.players.length){const winner=resolve(room);room.players[winner].tricks++;room.leader=winner;room.turn=winner;room.phase='result';}
+    if(room.played.length===room.players.length){const winner=resolve(room);room.players[winner].tricks++;room.players[winner].totalTricks=(room.players[winner].totalTricks||0)+1;room.leader=winner;room.turn=winner;room.phase='result';}
     else room.turn=(room.turn+1)%room.players.length;
     broadcast(room);return;
   }
