@@ -15,7 +15,7 @@ const LEADERBOARD_FILE = process.env.LEADERBOARD_FILE || path.join(DATA_DIR, 'le
 const SUPABASE_URL = String(process.env.SUPABASE_URL || '').replace(/\/$/, '');
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-const mime = { '.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.ico':'image/x-icon','.json':'application/json; charset=utf-8' };
+const mime = { '.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.ico':'image/x-icon','.json':'application/json; charset=utf-8','.webmanifest':'application/manifest+json; charset=utf-8' };
 const readLocalResults = () => { try { return JSON.parse(fs.readFileSync(LEADERBOARD_FILE, 'utf8')); } catch { return []; } };
 const writeLocalResults = rows => { fs.mkdirSync(path.dirname(LEADERBOARD_FILE), {recursive:true}); fs.writeFileSync(LEADERBOARD_FILE, JSON.stringify(rows.slice(-5000), null, 2)); };
 async function readResults(){

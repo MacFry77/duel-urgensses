@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Emblème médical de Duel Urgensses">
+  <defs>
+    <radialGradient id="background" cx="50%" cy="42%" r="68%">
+      <stop offset="0" stop-color="#173f40"/>
+      <stop offset="0.72" stop-color="#082527"/>
+      <stop offset="1" stop-color="#031719"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff0a2"/>
+      <stop offset="0.38" stop-color="#f4ca5d"/>
+      <stop offset="0.72" stop-color="#bd7624"/>
+      <stop offset="1" stop-color="#ffe68a"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="104" fill="#031719"/>
+  <circle cx="256" cy="256" r="211" fill="url(#background)" stroke="#315a55" stroke-width="8"/>
+  <circle cx="256" cy="256" r="178" fill="none" stroke="url(#gold)" stroke-width="16"/>
+  <circle cx="256" cy="256" r="157" fill="none" stroke="#fbe18a" stroke-opacity=".38" stroke-width="3"/>
+  <text x="256" y="350" text-anchor="middle" fill="url(#gold)" filter="url(#glow)"
+        font-family="Georgia, 'Segoe UI Symbol', serif" font-size="252">⚕</text>
+</svg>
