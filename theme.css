@@ -82,10 +82,8 @@ dialog,
   border: 7px solid #273d30;
   border-radius: 16px 16px 24px 24px;
   background:
-    radial-gradient(circle at 25% 20%, #fffdf0 0 2px, transparent 3px),
-    radial-gradient(circle at 74% 73%, #b59d6320 0 1px, transparent 2px),
-    repeating-linear-gradient(4deg, #f4eccf 0 3px, #eee2be 4px 5px, #f7efd6 6px 10px);
-  background-size: 43px 43px, 31px 31px, auto;
+    linear-gradient(135deg, #fff9dc22, #896f3b18),
+    url("assets/ui/parchment-player.png") center / cover no-repeat;
   box-shadow:
     0 5px 0 #b5934e,
     0 10px 0 #10231b,
@@ -389,10 +387,8 @@ dialog,
   border: 0;
   border-radius: 15px 26px 18px 24px;
   background:
-    radial-gradient(circle at 18% 22%, #8d71331a 0 1px, transparent 2px),
-    radial-gradient(circle at 73% 68%, #6e552715 0 1px, transparent 2px),
-    repeating-linear-gradient(3deg, #f7e9bd 0 4px, #ead49b 5px 6px, #f3e2b2 7px 12px);
-  background-size: 27px 27px, 39px 39px, auto;
+    linear-gradient(145deg, #fff2bd18, #9f6f2615),
+    url("assets/ui/parchment-communal.png") center / cover no-repeat;
   box-shadow:
     -9px 3px 0 #b99652,
     9px -3px 0 #d7bb76,
