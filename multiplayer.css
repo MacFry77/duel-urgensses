@@ -29,6 +29,23 @@
   .chat-panel{width:calc(100vw - 24px)}
 }
 .mobile-stage{display:none}
+
+/* Textures finales : cette feuille est chargée en dernier afin qu'aucun ancien
+   motif rayé ou pointillé ne puisse recouvrir les parchemins haute définition. */
+.arena.multiplayer-arena>.table{
+  background-color:#e5bf68!important;
+  background-image:linear-gradient(145deg,#fff2bd14,#7f531a14),url("assets/ui/parchment-communal.png?v=2")!important;
+  background-position:center!important;
+  background-size:cover!important;
+  background-repeat:no-repeat!important;
+}
+.arena.multiplayer-arena .players-grid>article.player-card{
+  background-color:#eadfbd!important;
+  background-image:linear-gradient(135deg,#fffbe822,#7d6c4012),url("assets/ui/parchment-player.png?v=2")!important;
+  background-position:center!important;
+  background-size:cover!important;
+  background-repeat:no-repeat!important;
+}
 @media(max-width:620px){
   .mobile-tabs{display:none!important}.arena.multiplayer-arena{display:none!important}.mobile-stage{display:flex;min-height:calc(100dvh - 205px);margin-top:7px;padding:18px 14px 142px;border:1px solid #8fcdbd55;border-radius:14px;background:linear-gradient(#071b20e8,#102d29f2),url("assets/environments/jungle-temple-arena.png") center/cover;box-shadow:inset 0 0 35px #0008;flex-direction:column;color:#effff9}
   .mobile-step{text-align:center}.mobile-step>span{color:#efc96f;font-size:7px;font-weight:900;letter-spacing:.22em}.mobile-step h2{margin:8px 0 6px;color:#ffe19a;font:900 25px/1.05 Georgia,serif}.mobile-step p{max-width:330px;margin:0 auto 12px;color:#c8e2dc;font-size:13px;line-height:1.35}
