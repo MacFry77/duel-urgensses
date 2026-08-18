@@ -46,6 +46,39 @@
   background-size:cover!important;
   background-repeat:no-repeat!important;
 }
+
+/* Disposition de table sur ordinateur : le parchemin commun est au centre,
+   les joueurs se font face de part et d'autre. */
+@media(min-width:951px){
+  .arena.multiplayer-arena{
+    grid-template-columns:minmax(220px,1fr) minmax(340px,410px) minmax(220px,1fr)!important;
+    gap:18px!important;
+    align-items:start!important;
+  }
+  .arena.multiplayer-arena>.table{
+    grid-column:2!important;
+    grid-row:1 / span 6!important;
+    width:100%!important;
+    margin-top:210px!important;
+  }
+  .arena.multiplayer-arena>.players-grid{display:contents!important}
+  .arena.multiplayer-arena>.players-grid>article.player-card:nth-child(odd){grid-column:1!important}
+  .arena.multiplayer-arena>.players-grid>article.player-card:nth-child(even){grid-column:3!important}
+  .arena.multiplayer-arena>.players-grid>article.player-card:nth-child(1),
+  .arena.multiplayer-arena>.players-grid>article.player-card:nth-child(2){grid-row:1!important}
+  .arena.multiplayer-arena>.players-grid>article.player-card:nth-child(3),
+  .arena.multiplayer-arena>.players-grid>article.player-card:nth-child(4){grid-row:2!important}
+  .arena.multiplayer-arena>.players-grid>article.player-card:nth-child(5),
+  .arena.multiplayer-arena>.players-grid>article.player-card:nth-child(6){grid-row:3!important}
+  .arena.multiplayer-arena>.players-grid>article.player-card{
+    width:100%!important;
+    margin-top:210px!important;
+    box-shadow:0 18px 34px #0009,inset 0 0 0 2px #d6bc72,inset 0 0 35px #8e713844!important;
+  }
+  .arena.multiplayer-arena>.players-grid>article.player-card.active{
+    box-shadow:0 18px 34px #0009,0 0 28px #ffb743aa,inset 0 0 0 2px #f1d38c,inset 0 0 35px #b77b2844!important;
+  }
+}
 @media(max-width:620px){
   .mobile-tabs{display:none!important}.arena.multiplayer-arena{display:none!important}.mobile-stage{display:flex;min-height:calc(100dvh - 205px);margin-top:7px;padding:18px 14px 142px;border:1px solid #8fcdbd55;border-radius:14px;background:linear-gradient(#071b20e8,#102d29f2),url("assets/environments/jungle-temple-arena.png") center/cover;box-shadow:inset 0 0 35px #0008;flex-direction:column;color:#effff9}
   .mobile-step{text-align:center}.mobile-step>span{color:#efc96f;font-size:7px;font-weight:900;letter-spacing:.22em}.mobile-step h2{margin:8px 0 6px;color:#ffe19a;font:900 25px/1.05 Georgia,serif}.mobile-step p{max-width:330px;margin:0 auto 12px;color:#c8e2dc;font-size:13px;line-height:1.35}
