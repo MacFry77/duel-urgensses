@@ -68,7 +68,14 @@ const publicState = (room, viewerId) => ({
   viewerRole: room.spectators.some(s=>s.id===viewerId) ? 'spectator' : 'player',
   spectators: room.spectators.map(s=>({id:s.id,name:s.name,connected:!!s.ws})),
   chat: room.chat,
-  players: room.players.map(p => ({id:p.id,name:p.name,character:p.character,score:p.score,bid:p.bid,tricks:p.tricks,connected:!!p.ws,dice:p.id===viewerId?p.dice:p.dice.map(()=>({hidden:true}))}))
+  players: room.players.map(p => ({
+    id:p.id,name:p.name,character:p.character,score:p.score,
+    // Pendant les paris, chacun ne voit que son propre choix. Les paris sont
+    // révélés simultanément lorsque le dernier joueur a choisi.
+    bid:room.phase==='bids'&&p.id!==viewerId?null:p.bid,
+    tricks:p.tricks,connected:!!p.ws,
+    dice:p.id===viewerId?p.dice:p.dice.map(()=>({hidden:true}))
+  }))
 });
 const members = room => [...room.players,...room.spectators];
 const broadcast = room => members(room).forEach(p => p.ws && send(p.ws,'state',{state:publicState(room,p.id)}));
@@ -187,4 +194,4 @@ wss.on('connection',ws=>{ws.isAlive=true;ws.on('pong',()=>ws.isAlive=true);ws.on
 setInterval(()=>{wss.clients.forEach(ws=>{if(!ws.isAlive)return ws.terminate();ws.isAlive=false;ws.ping();});},25000).unref();
 setInterval(()=>{for(const [roomCode,room] of rooms)if(members(room).every(p=>!p.ws))rooms.delete(roomCode);},30*60*1000).unref();
 if(require.main===module)server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`));
-module.exports={resolve};
+module.exports={resolve,publicState};
