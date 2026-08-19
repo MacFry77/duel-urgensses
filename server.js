@@ -202,7 +202,7 @@ function handle(ws, msg){
         else{
         if(room.status!=='lobby')return fail(ws,'La partie a déjà commencé. Rejoignez-la comme spectateur.');
         if(room.players.length>=room.maxPlayers)return fail(ws,`Cette salle est complète (${room.maxPlayers} joueurs maximum).`);
-        if(room.players.some(p=>p.character===character))return fail(ws,'Ce personnage est déjà choisi.');
+        if(room.players.some(p=>p.character===character))return fail(ws,'Ce personnage est déjà pris. Choisissez-en un autre.');
         player={id:id(),name:character,character,score:0,bid:null,tricks:0,dice:[],ws};room.players.push(player);
         }
       }

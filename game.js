@@ -6,7 +6,7 @@ const icons={
 };
 const CHARACTERS=[['Pascal','pascal-pirate.png'],['Mathieu','mathieu-luchador.png'],['Pierre','pierre-halloween.png'],['Adela','adela-egyptienne.png'],['JB','jb-cosmonaute.png?v=20260819-2'],['Romain','romain-poulet.png'],['Natacha','natacha-princesse.png'],['Fanny','fanny-exploratrice.png'],['Félix','felix-cyborg.png'],['Youri','youri-paladin.png?v=20260819-2'],['Quentin','quentin-dictateur.png'],['Nicolas','nicolas-vigilante.png'],['Yannick','yannick-cardinal.png?v=20260819-2'],['Cecilia','cecilia-infirmiere.png'],['Thibault','thibault-aventurier.png'],['Polo','polo-dandy.png'],['Édouard','edouard-aviateur.png'],['Justin','justin-judoka.png'],['Charlotte','charlotte-cavaliere.png?v=20260819-2'],["Catoire d’Arabie",'catoire-arabie.png'],['Rémy','remy-shaolin.png'],['Olivier','olivier-policier.png?v=20260819-2'],['Raphaël','raphael-scaphandrier.png?v=20260819-3'],['Éric','eric-druide.png'],['Cyril','cyril-alchimiste.png'],['Rémi','remi-berserker.png'],['Thomas','thomas-capitaine-sous-marin.png'],['Benjamin','benjamin-sherif.png'],['Edwin','edwin-zadiste.png'],['Alexandre','alexandre-hercule-satan.png?v=20260819-2'],['Erwan','erwan-bucheron.png']];
 const FEMININE_HAND_CHARACTERS=new Set(['Adela','Natacha','Fanny','Cecilia','Charlotte']);
-const $=id=>document.getElementById(id);let socket,state,session=JSON.parse(localStorage.getItem('duel-session')||'null'),lastChatCount=0,reconnectTimer=null,connectionNumber=0,leavingRoom=false;
+const $=id=>document.getElementById(id);let socket,state,session=JSON.parse(localStorage.getItem('duel-session')||'null'),lastChatCount=0,reconnectTimer=null,connectionNumber=0,leavingRoom=false,errorTimer=null;
 const invitedCode=new URLSearchParams(location.search).get('join')?.trim().toUpperCase().replace(/[^A-Z2-9]/g,'').slice(0,5)||'';
 // Un joueur qui actualise son lien d'invitation doit conserver son identité.
 // On oublie l'ancienne session uniquement si le lien vise une autre salle.
@@ -42,7 +42,11 @@ function invitationUrl(){const url=new URL(location.href);url.search='';url.hash
 function invitationText(){return `Je t’invite à jouer à Duel Urgensses ! Rejoins directement ma partie : ${invitationUrl()}`}
 async function copyInvitation(){try{await navigator.clipboard.writeText(invitationUrl());$('copyInviteButton').textContent='LIEN COPIÉ !';setTimeout(()=>$('copyInviteButton').textContent='COPIER LE LIEN',1400)}catch{showError('Impossible de copier le lien sur cet appareil.')}}
 async function shareInvitation(){if(navigator.share){try{await navigator.share({title:'Duel Urgensses',text:'Je t’invite à jouer à Duel Urgensses !',url:invitationUrl()});return}catch(error){if(error.name==='AbortError')return}}await copyInvitation()}
-function showError(message){$('connectionStatus').textContent=message;$('connectionStatus').classList.add('error');setTimeout(()=>$('connectionStatus').classList.remove('error'),2500)}
+function showError(message){
+  const status=$('connectionStatus'),toast=$('errorToast');
+  status.textContent=message;status.classList.add('error');toast.textContent=message;toast.classList.remove('hidden');
+  clearTimeout(errorTimer);errorTimer=setTimeout(()=>{toast.classList.add('hidden');status.classList.remove('error')},5000);
+}
 async function showLeaderboard(){
   $('leaderboardDialog').showModal();$('leaderboardBody').innerHTML='<p class="leaderboard-loading">Chargement du classement…</p>';
   try{const response=await fetch('/api/leaderboard',{cache:'no-store'});if(!response.ok)throw new Error();const rows=await response.json();$('leaderboardBody').innerHTML=rows.length?`<div class="leaderboard-table"><div class="leaderboard-row leaderboard-head"><span>RANG</span><span>PERSONNAGE</span><span>POINTS</span><span>V</span><span>PARTIES</span><span>TAUX</span></div>${rows.map((r,i)=>`<div class="leaderboard-row"><b class="rank">${i+1}</b><span class="leaderboard-character"><img src="assets/characters/${characterFile(r.character)}" alt=""><strong>${esc(r.character)}</strong></span><b>${r.points}</b><span>${r.wins}</span><span>${r.games}</span><span>${r.winRate}%</span></div>`).join('')}</div>`:'<p class="leaderboard-empty">Le Hall of Fame attend sa première partie terminée.</p>'}catch{$('leaderboardBody').innerHTML='<p class="leaderboard-empty">Le classement est momentanément indisponible.</p>'}
