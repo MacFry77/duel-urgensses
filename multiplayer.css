@@ -36,13 +36,13 @@
 }
 
 /* Révélation simultanée des paris par gestes de mains */
-.bid-reveal{width:calc(100% + 30px);max-width:650px;margin:8px -15px 14px;padding:14px 10px 16px;border:1px solid #d7b85f;border-radius:12px;background:linear-gradient(180deg,#173c34ee,#081e1bdd);box-shadow:0 10px 25px #0008,inset 0 0 22px #e3bd3a18}
+.bid-reveal{width:calc(100% + 12px);max-width:700px;margin:8px -6px 14px;padding:15px 12px 17px;border:1px solid #d7b85f;border-radius:12px;background:linear-gradient(180deg,#173c34ee,#081e1bdd);box-shadow:0 10px 25px #0008,inset 0 0 22px #e3bd3a18}
 .bid-reveal>h3{margin:0 0 9px;color:#ffe08a;font-size:11px;letter-spacing:.18em;text-align:center;text-shadow:0 2px #000}
-.bid-reveal-grid,.mobile-bid-reveal{display:flex;justify-content:center;align-items:end;gap:14px;flex-wrap:wrap}
-.revealed-bid{display:grid;grid-template-rows:auto 108px auto;min-width:110px;place-items:center;color:#fff1b8;text-align:center;animation:bid-hand-reveal .55s cubic-bezier(.2,.9,.25,1.25) both}
+.bid-reveal-grid,.mobile-bid-reveal{display:flex;justify-content:center;align-items:end;gap:16px;flex-wrap:wrap}
+.revealed-bid{display:grid;grid-template-rows:auto 118px;min-width:120px;place-items:center;color:#fff1b8;text-align:center;animation:bid-hand-reveal .55s cubic-bezier(.2,.9,.25,1.25) both}
 .revealed-bid:nth-child(2){animation-delay:.06s}.revealed-bid:nth-child(3){animation-delay:.12s}.revealed-bid:nth-child(4){animation-delay:.18s}
-.revealed-bid>span{font-size:10px;font-weight:900}.revealed-bid>small{margin-top:-2px;color:#f6d372;font-size:9px;font-weight:900}
-.bid-gesture{position:relative;display:inline-grid;width:126px;height:106px;place-items:center;filter:drop-shadow(0 7px 6px #000b)}
+.revealed-bid>span{font-size:10px;font-weight:900}
+.bid-gesture{position:relative;display:inline-grid;width:138px;height:116px;place-items:center;filter:drop-shadow(0 7px 6px #000b)}
 .bid-gesture img{display:block;max-width:100%;max-height:100%;object-fit:contain}
 .bid-gesture.from-right img{transform:scaleX(-1)}
 /* Variantes de mains : les gestes validés restent strictement identiques. */
@@ -59,7 +59,7 @@
   .mobile-revealed-bids{border-color:#dabd66;background:linear-gradient(#173b34e8,#071a18ed);box-shadow:0 0 22px #f0bd4540}
   .mobile-revealed-bids h3{color:#ffe08a!important}
   .mobile-bid-reveal{gap:5px}
-  .mobile-bid-reveal .revealed-bid{grid-template-rows:auto 82px auto;min-width:82px}
+  .mobile-bid-reveal .revealed-bid{grid-template-rows:auto 82px;min-width:82px}
   .mobile-bid-reveal .bid-gesture{width:92px;height:80px}
 }
 
@@ -162,15 +162,15 @@
 .arena .stone-runes::before,
 .arena .stone-runes::after{
   content:""!important;
-  top:-35px!important;
-  width:104px;
-  height:95px;
+  top:-27px!important;
+  width:92px;
+  height:84px;
   background:url("assets/ui/jungle-vine-corner.png") center/contain no-repeat;
   filter:drop-shadow(0 5px 4px #0008);
   opacity:.95;
 }
-.arena .stone-runes::before{left:-31px!important;transform:none!important}
-.arena .stone-runes::after{right:-31px!important;transform:scaleX(-1)!important}
+.arena .stone-runes::before{left:-10px!important;transform:none!important}
+.arena .stone-runes::after{right:-10px!important;transform:scaleX(-1)!important}
 /* Le parchemin et ses lianes forment déjà le cadre : aucun second contour intérieur. */
 .arena .stone-runes{
   inset:0!important;
@@ -342,7 +342,7 @@
    les joueurs se font face de part et d'autre. */
 @media(min-width:951px){
   .arena.multiplayer-arena{
-    grid-template-columns:minmax(220px,1fr) minmax(340px,410px) minmax(220px,1fr)!important;
+    grid-template-columns:minmax(220px,1fr) minmax(390px,460px) minmax(220px,1fr)!important;
     gap:18px!important;
     align-items:start!important;
   }
@@ -351,6 +351,9 @@
     grid-row:1 / span 6!important;
     width:100%!important;
     margin-top:210px!important;
+    min-height:540px!important;
+    padding-left:32px!important;
+    padding-right:32px!important;
   }
   .arena.multiplayer-arena>.players-grid{display:contents!important}
   .arena.multiplayer-arena>.players-grid>article.player-card:nth-child(odd){grid-column:1!important}
