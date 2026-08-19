@@ -212,29 +212,18 @@
 /* Accueil — dalle d'expédition très ancienne, gravures incas, lianes et feuillage */
 .adventure-lobby .stone-panel{
   isolation:isolate;
-  overflow:hidden;
+  overflow:visible;
   padding:34px 31px 30px;
   border:0;
   border-radius:0;
-  clip-path:polygon(
-    12px 0,38px 3px,72px 0,104px 4px,calc(100% - 76px) 2px,calc(100% - 42px) 0,calc(100% - 16px) 5px,100% 14px,
-    calc(100% - 4px) 48px,100% 82px,calc(100% - 3px) 126px,100% calc(100% - 94px),calc(100% - 5px) calc(100% - 50px),calc(100% - 14px) 100%,
-    calc(100% - 48px) calc(100% - 4px),calc(100% - 86px) 100%,calc(100% - 126px) calc(100% - 3px),82px 100%,48px calc(100% - 5px),14px 100%,0 calc(100% - 14px),
-    4px calc(100% - 48px),0 calc(100% - 86px),3px calc(100% - 132px),0 108px,5px 70px,0 34px
-  );
   background:
     url("assets/ui/inca-stone-frame.png") center/100% 100% no-repeat,
-    radial-gradient(ellipse at 50% 37%,transparent 0 35%,#02070642 92%),
-    linear-gradient(145deg,#07130f26,#15291e52),
-    url("assets/ui/inca-stone-panel-texture.png") center/cover no-repeat,
-    #252a22;
-  box-shadow:
-    inset 0 18px 24px #a9924930,
-    inset 0 -24px 35px #0008,
-    inset 18px 0 26px #0004,
-    inset -18px 0 26px #0005;
+    radial-gradient(ellipse at 50% 37%,transparent 0 35%,#02070642 92%) center/calc(100% - 50px) calc(100% - 82px) no-repeat,
+    linear-gradient(145deg,#07130f26,#15291e52) center/calc(100% - 50px) calc(100% - 82px) no-repeat,
+    url("assets/ui/inca-stone-panel-texture.png") center/calc(100% - 50px) calc(100% - 82px) no-repeat;
+  background-color:transparent;
+  box-shadow:none;
   outline:0;
-  filter:drop-shadow(0 8px 0 #0c100c) drop-shadow(0 20px 20px #000b);
 }
 .adventure-lobby .stone-panel::before,
 .adventure-lobby .stone-panel::after{
@@ -253,11 +242,14 @@
 .adventure-lobby .form-title{
   margin:-5px 20px 23px;
   padding:11px 14px 13px;
-  border-bottom:1px solid #cfb56c99;
-  color:#ffe49a;
-  font-size:13px;
+  border:1px solid #b99b5844;
+  border-radius:2px;
+  background:linear-gradient(90deg,transparent,#050a08b8 13% 87%,transparent);
+  color:#fff0b5;
+  font-size:14px;
   letter-spacing:.19em;
-  text-shadow:0 2px #081a15,0 0 13px #ffc65e55;
+  text-shadow:0 2px 1px #000,0 0 8px #000,0 0 14px #ffc65e70;
+  box-shadow:inset 0 1px #d9bd6d25,inset 0 -1px #0008;
 }
 .adventure-lobby .lobby-actions label{
   color:#eef1cd;
@@ -325,10 +317,11 @@
   background:linear-gradient(90deg,transparent,#8da66a);
 }
 .adventure-lobby .lobby-choice>span::after{transform:scaleX(-1)}
-.adventure-lobby .connection-status{color:#b9d5c4;text-shadow:0 1px #000}
+.adventure-lobby .connection-status{color:#e2ead8;font-weight:700;text-shadow:0 2px 2px #000,0 0 7px #000}
+.adventure-lobby .lobby-note{display:block;margin-top:2px;padding:5px 7px;color:#f1dfaa;font-size:8px;font-weight:900;letter-spacing:.13em;text-shadow:0 2px 2px #000,0 0 6px #000;background:linear-gradient(90deg,transparent,#0205048f 18% 82%,transparent)}
 
 @media(max-width:620px){
-  .adventure-lobby .stone-panel{overflow:hidden;padding:31px 22px 26px;border-radius:0}
+  .adventure-lobby .stone-panel{overflow:visible;padding:31px 22px 26px;border-radius:0}
   .adventure-lobby .stone-panel::before,
   .adventure-lobby .stone-panel::after{width:130px;height:119px;opacity:.78}
   .adventure-lobby .stone-panel::before{left:-28px;top:-27px}
