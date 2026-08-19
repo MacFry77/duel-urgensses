@@ -35,6 +35,137 @@
   .chat-panel{width:calc(100vw - 24px)}
 }
 
+/* Salle d'attente — même langage visuel que le panneau d'expédition */
+.waiting-room{
+  position:relative;
+  isolation:isolate;
+  overflow:visible;
+  border:2px solid #8f7843;
+  border-left:8px solid #d05b37;
+  border-radius:8px 22px 8px 22px;
+  background:
+    linear-gradient(118deg,#061814e8,#0e2c24d9),
+    url("assets/ui/jungle-panel-texture.png") center/cover no-repeat!important;
+  box-shadow:0 16px 0 #061510,0 28px 48px #000a,inset 0 0 0 4px #172f27,inset 0 0 55px #0008;
+}
+.waiting-room::before,
+.waiting-room::after{
+  content:"";
+  position:absolute;
+  z-index:3;
+  width:190px;
+  height:174px;
+  background:url("assets/ui/jungle-vine-corner.png") center/contain no-repeat;
+  filter:drop-shadow(0 7px 6px #000b);
+  pointer-events:none;
+}
+.waiting-room::before{left:-26px;top:-30px}
+.waiting-room::after{right:-25px;bottom:-29px;transform:rotate(180deg)}
+.waiting-room>div{position:relative;z-index:4}
+.waiting-room>div:first-child{
+  align-self:center;
+  padding:18px 20px 22px;
+  border-left:1px solid #c5a75b77;
+  background:linear-gradient(90deg,#071914a6,transparent);
+}
+.waiting-room>div:first-child h2{
+  color:#ffe49a;
+  font-family:var(--font-adventure-display),Georgia,serif;
+  text-shadow:0 3px #07140f,0 0 18px #f5b74935;
+}
+.waiting-room .stone-panel{
+  position:relative;
+  padding:31px 29px 27px;
+  border:2px solid #c3a55e;
+  border-radius:16px 8px 16px 8px;
+  background:
+    linear-gradient(145deg,#173a30c4,#071d18e8),
+    url("assets/ui/jungle-panel-texture.png") center/cover no-repeat;
+  box-shadow:0 8px 0 #061611,0 17px 26px #0009,inset 0 0 0 4px #25473a,inset 0 0 30px #0007;
+}
+.waiting-room .form-title{
+  margin:0 8px 19px;
+  padding-bottom:13px;
+  border-bottom:1px solid #bfa35a77;
+  color:#ffe39a;
+  font-size:13px;
+  text-shadow:0 2px #06140f;
+}
+.waiting-player{
+  border:1px solid #85734377;
+  border-radius:8px 3px 8px 3px;
+  background:linear-gradient(90deg,#0a211bcf,#193a30b8);
+  box-shadow:inset 0 0 12px #0005;
+}
+.waiting-room .invite-actions button,
+.waiting-room #onlineStartButton,
+.waiting-room .cancel-waiting{
+  border-radius:10px 4px 10px 4px;
+  box-shadow:inset 0 0 0 2px #ffffff17,0 4px 0 #061713,0 8px 15px #0006;
+  transition:transform .16s,filter .16s;
+}
+.waiting-room .invite-actions button:hover,
+.waiting-room #onlineStartButton:hover,
+.waiting-room .cancel-waiting:hover{transform:translateY(-2px);filter:brightness(1.14)}
+.waiting-room .share-invite,
+.waiting-room #onlineStartButton{border:1px solid #ffd186;background:linear-gradient(#e59243,#a64129)}
+.waiting-room .direct-invite{border-color:#84b76d;background:linear-gradient(#276247,#123a2c)}
+.waiting-room .copy-invite{background:linear-gradient(#394b38,#1b2f28)}
+.waiting-room .room-code{
+  border:2px solid #d5b969;
+  border-radius:8px 3px 8px 3px;
+  background:#071913;
+  box-shadow:inset 0 0 15px #6a8f5330,0 4px 0 #030d09;
+}
+
+/* Partie — véritables ornements végétaux 16 bit sur les parchemins */
+.arena article.player-card::before,
+.arena article.player-card::after{
+  content:""!important;
+  top:-31px!important;
+  width:86px;
+  height:79px;
+  background:url("assets/ui/jungle-vine-corner.png") center/contain no-repeat;
+  filter:drop-shadow(0 4px 3px #0008);
+  opacity:.92;
+}
+.arena article.player-card::before{left:-23px!important;transform:none!important}
+.arena article.player-card::after{right:-23px!important;transform:scaleX(-1)!important}
+.arena .stone-runes::before,
+.arena .stone-runes::after{
+  content:""!important;
+  top:-35px!important;
+  width:104px;
+  height:95px;
+  background:url("assets/ui/jungle-vine-corner.png") center/contain no-repeat;
+  filter:drop-shadow(0 5px 4px #0008);
+  opacity:.95;
+}
+.arena .stone-runes::before{left:-31px!important;transform:none!important}
+.arena .stone-runes::after{right:-31px!important;transform:scaleX(-1)!important}
+.status-strip{
+  background:
+    linear-gradient(180deg,#16392fc9,#081f19e8),
+    url("assets/ui/jungle-panel-texture.png") center 48%/cover no-repeat!important;
+  box-shadow:0 7px 0 #071712,0 14px 25px #0009,inset 0 0 0 2px #405c43,inset 0 0 24px #0007;
+}
+
+@media(max-width:850px){
+  .waiting-room::before,.waiting-room::after{width:145px;height:133px;opacity:.84}
+}
+@media(max-width:620px){
+  .waiting-room{overflow:hidden;border-left-width:5px}
+  .waiting-room::before,.waiting-room::after{width:112px;height:103px;opacity:.68}
+  .waiting-room::before{left:-31px;top:-28px}
+  .waiting-room::after{right:-30px;bottom:-29px}
+  .waiting-room>div:first-child{padding:13px 8px 18px}
+  .waiting-room .stone-panel{padding:25px 18px 22px}
+  .arena article.player-card::before,.arena article.player-card::after{width:68px;height:62px;top:-22px!important}
+  .mobile-stage{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(#071b20dd,#102d29e8),url("assets/ui/jungle-panel-texture.png") center/cover!important}
+  .mobile-stage::before{content:"";position:absolute;z-index:0;left:-28px;top:-27px;width:125px;height:114px;background:url("assets/ui/jungle-vine-corner.png") center/contain no-repeat;opacity:.72;filter:drop-shadow(0 5px 4px #0009);pointer-events:none}
+  .mobile-stage>*{position:relative;z-index:1}
+}
+
 /* Accueil — panneau d'expédition en bois, lianes et feuillage */
 .adventure-lobby .stone-panel{
   isolation:isolate;
