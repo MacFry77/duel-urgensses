@@ -13,7 +13,7 @@
   <link rel="manifest" href="/site.webmanifest?v=2">
   <link rel="stylesheet" href="styles.css?v=5">
   <link rel="stylesheet" href="theme.css?v=5">
-  <link rel="stylesheet" href="multiplayer.css?v=5">
+  <link rel="stylesheet" href="multiplayer.css?v=6">
 </head>
 <body>
   <div id="connectionBanner" class="connection-banner hidden">RECONNEXION AU SERVEUR…</div>
@@ -36,6 +36,11 @@
       </div>
       <div class="lobby-actions stone-panel">
         <p class="form-title">REJOIGNEZ L’EXPÉDITION</p>
+        <div id="inviteNotice" class="invite-notice hidden">
+          <span>INVITATION REÇUE</span>
+          <strong>Vous êtes invité à rejoindre la salle <b id="invitedRoomCode"></b></strong>
+          <small>Choisissez votre personnage, puis rejoignez la partie.</small>
+        </div>
         <label>VOTRE PERSONNAGE<select id="characterSelect"></select></label>
         <label id="roundsLabel">NOMBRE DE MANCHES
           <select id="roundCount">
@@ -53,7 +58,7 @@
           <button id="createButton" class="primary arena-button"><span>CRÉER UNE SALLE</span></button>
           <button id="organizerButton" class="spectator-button"><span>CRÉER COMME ORGANISATEUR / SPECTATEUR</span></button>
           <span>OU</span>
-          <div class="join-row"><input id="roomCodeInput" maxlength="5" placeholder="CODE"><button id="joinButton" class="outline">REJOINDRE</button></div>
+          <div class="join-row"><input id="roomCodeInput" maxlength="5" placeholder="CODE" aria-label="Code de la salle"><button id="joinButton" class="outline">REJOINDRE</button></div>
         </div>
         <p id="connectionStatus" class="connection-status">Connexion au serveur…</p>
         <small class="lobby-note">DÉS · AUDACE · RÈGLEMENT DE COMPTES</small>
@@ -63,8 +68,14 @@
     <section id="waitingRoom" class="panel waiting-room hidden">
       <div>
         <p class="kicker">SALLE PRIVÉE</p>
-        <h2>Code : <button id="copyCode" class="room-code" title="Copier le code">—</button></h2>
-        <p>Envoyez ce code à vos amis. Chaque joueur rejoint depuis son propre navigateur.</p>
+        <h2>Votre salle est prête !</h2>
+        <p>Invitez vos amis en un geste. Le lien ouvre directement cette salle.</p>
+        <div class="invite-actions">
+          <button id="shareInviteButton" class="share-invite primary">PARTAGER L’INVITATION</button>
+          <a id="whatsappInviteLink" class="whatsapp-invite" href="#" target="_blank" rel="noopener">ENVOYER SUR WHATSAPP</a>
+          <button id="copyInviteButton" class="copy-invite">COPIER LE LIEN</button>
+        </div>
+        <p class="code-fallback">Ou partagez simplement le code : <button id="copyCode" class="room-code" title="Copier le code">—</button></p>
       </div>
       <div class="stone-panel">
         <p class="form-title">JOUEURS CONNECTÉS</p>
@@ -129,6 +140,6 @@
     <p class="leaderboard-intro">Chaque victoire fait progresser le personnage joué, quel que soit le navigateur utilisé.</p>
     <div id="leaderboardBody"></div>
   </dialog>
-  <script src="game.js?v=7"></script>
+  <script src="game.js?v=8"></script>
 </body>
 </html>
