@@ -34,6 +34,127 @@
   .arena .players-grid article.player-card{margin-top:0!important;min-height:220px!important}.players-grid .avatar-zone{display:none}.players-grid .turn-indicator{top:-4px;right:8px;left:auto;transform:none}.players-grid .player-head{padding-top:34px}.players-grid .dice-rack{min-height:70px}.table .pulse{margin-top:8px!important}.arena .played{margin:10px 0!important;min-height:76px!important}.arena .table #message{min-height:62px!important}
   .chat-panel{width:calc(100vw - 24px)}
 }
+
+/* Accueil — panneau d'expédition en bois, lianes et feuillage */
+.adventure-lobby .stone-panel{
+  isolation:isolate;
+  overflow:visible;
+  padding:34px 31px 30px;
+  border:2px solid #b9964f;
+  border-radius:18px 12px 18px 12px;
+  background:
+    radial-gradient(circle at 18% 12%,#a9d06118 0 3px,transparent 4px),
+    radial-gradient(circle at 83% 82%,#d7bb5c12 0 2px,transparent 3px),
+    repeating-linear-gradient(96deg,#ffffff08 0 1px,transparent 1px 16px),
+    linear-gradient(145deg,#314b3f 0%,#1b332d 50%,#102822 100%);
+  box-shadow:
+    0 10px 0 #081a16,
+    0 24px 42px #000b,
+    0 0 32px #86ba6930,
+    inset 0 0 0 5px #091d18,
+    inset 0 0 0 7px #67845c,
+    inset 0 0 42px #0008;
+}
+.adventure-lobby .stone-panel::before,
+.adventure-lobby .stone-panel::after{
+  content:"";
+  position:absolute;
+  z-index:3;
+  width:132px;
+  height:132px;
+  pointer-events:none;
+  background-repeat:no-repeat;
+  background-size:contain;
+  filter:drop-shadow(0 5px 5px #0008);
+}
+.adventure-lobby .stone-panel::before{
+  left:-19px;
+  top:-21px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 140'%3E%3Cpath d='M9 131C8 85 18 40 59 9M13 102C42 91 55 65 60 37M32 76C19 58 27 35 46 24' fill='none' stroke='%23527139' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M18 101c19-14 34-5 35 12-19 4-31-1-35-12ZM37 70c-5-21 9-32 27-26-2 18-10 28-27 26ZM49 30C57 11 74 9 87 21 77 35 65 39 49 30Z' fill='%236d9148' stroke='%232b492b' stroke-width='2'/%3E%3C/svg%3E");
+}
+.adventure-lobby .stone-panel::after{
+  right:-19px;
+  bottom:-22px;
+  transform:rotate(180deg);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 140'%3E%3Cpath d='M9 131C8 85 18 40 59 9M13 102C42 91 55 65 60 37M32 76C19 58 27 35 46 24' fill='none' stroke='%23527139' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M18 101c19-14 34-5 35 12-19 4-31-1-35-12ZM37 70c-5-21 9-32 27-26-2 18-10 28-27 26ZM49 30C57 11 74 9 87 21 77 35 65 39 49 30Z' fill='%236d9148' stroke='%232b492b' stroke-width='2'/%3E%3C/svg%3E");
+}
+.adventure-lobby .stone-panel>*{position:relative;z-index:4}
+.adventure-lobby .form-title{
+  margin:-5px 20px 23px;
+  padding:11px 14px 13px;
+  border-bottom:1px solid #cfb56c99;
+  color:#ffe49a;
+  font-size:13px;
+  letter-spacing:.19em;
+  text-shadow:0 2px #081a15,0 0 13px #ffc65e55;
+}
+.adventure-lobby .lobby-actions label{
+  color:#d9e7c5;
+  text-shadow:0 1px #06140f;
+}
+.adventure-lobby .lobby-actions select,
+.adventure-lobby .lobby-actions input{
+  border:1px solid #c8ac65;
+  border-radius:9px 4px 9px 4px;
+  background:
+    linear-gradient(#f0e2b7ee,#d6bf81ee),
+    repeating-linear-gradient(90deg,transparent 0 20px,#7b5c2112 21px);
+  color:#173027;
+  box-shadow:inset 0 0 0 2px #fff5d655,inset 0 -5px 12px #6f501f25,0 4px 0 #071914,0 7px 14px #0005;
+}
+.adventure-lobby .lobby-choice button{
+  min-height:43px;
+  border-radius:10px 4px 10px 4px;
+  border:1px solid #d2b66c;
+  box-shadow:inset 0 0 0 2px #ffffff18,0 4px 0 #061713,0 7px 13px #0005;
+  text-shadow:0 2px #071713;
+  transition:transform .16s,filter .16s,box-shadow .16s;
+}
+.adventure-lobby .lobby-choice button:hover{
+  transform:translateY(-2px);
+  filter:brightness(1.14);
+  box-shadow:inset 0 0 0 2px #ffffff24,0 6px 0 #061713,0 10px 18px #0007,0 0 18px #a7d06635;
+}
+.adventure-lobby .lobby-choice button:active{transform:translateY(3px);box-shadow:inset 0 0 0 2px #ffffff18,0 1px 0 #061713}
+.adventure-lobby #createButton{
+  background:linear-gradient(#e59647,#a74328);
+  border-color:#ffd48a;
+}
+.adventure-lobby #organizerButton,
+.adventure-lobby #joinSpectatorButton{
+  background:linear-gradient(#285346,#122f29);
+  color:#dffff0;
+  border-color:#729b62;
+}
+.adventure-lobby #joinButton{
+  background:linear-gradient(#4b5537,#293a2d);
+  color:#ffe19a;
+}
+.adventure-lobby .lobby-choice>span{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:#b7c69b;
+}
+.adventure-lobby .lobby-choice>span::before,
+.adventure-lobby .lobby-choice>span::after{
+  content:"";
+  height:1px;
+  flex:1;
+  background:linear-gradient(90deg,transparent,#8da66a);
+}
+.adventure-lobby .lobby-choice>span::after{transform:scaleX(-1)}
+.adventure-lobby .connection-status{color:#b9d5c4;text-shadow:0 1px #000}
+
+@media(max-width:620px){
+  .adventure-lobby .stone-panel{overflow:hidden;padding:31px 22px 26px;border-radius:15px}
+  .adventure-lobby .stone-panel::before,
+  .adventure-lobby .stone-panel::after{width:104px;height:104px;opacity:.72}
+  .adventure-lobby .stone-panel::before{left:-28px;top:-27px}
+  .adventure-lobby .stone-panel::after{right:-27px;bottom:-30px}
+  .adventure-lobby .form-title{margin:-2px 12px 20px;font-size:11px}
+  .adventure-lobby .lobby-choice button{min-height:48px}
+}
 .mobile-stage{display:none}
 
 /* Textures finales : cette feuille est chargée en dernier afin qu'aucun ancien
