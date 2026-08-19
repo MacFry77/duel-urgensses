@@ -240,16 +240,16 @@
 }
 .adventure-lobby .stone-panel>*{position:relative;z-index:4}
 .adventure-lobby .form-title{
-  margin:-5px 20px 23px;
-  padding:11px 14px 13px;
-  border:1px solid #b99b5844;
-  border-radius:2px;
-  background:linear-gradient(90deg,transparent,#050a08b8 13% 87%,transparent);
-  color:#fff0b5;
+  margin:-5px 14px 23px;
+  padding:12px 18px 14px;
+  border:1px solid #d2b86888;
+  border-radius:18px 7px 18px 7px;
+  background:radial-gradient(ellipse at center,#26352bcf 0 38%,#0a100ddf 82%,transparent 100%);
+  color:#fff4c7;
   font-size:14px;
   letter-spacing:.19em;
-  text-shadow:0 2px 1px #000,0 0 8px #000,0 0 14px #ffc65e70;
-  box-shadow:inset 0 1px #d9bd6d25,inset 0 -1px #0008;
+  text-shadow:0 2px 1px #000,0 0 8px #000,0 0 16px #ffc65e99;
+  box-shadow:inset 0 1px #f3dc9550,inset 0 -3px 7px #000a,0 2px 7px #0007,0 0 12px #c8a75828;
 }
 .adventure-lobby .lobby-actions label{
   color:#eef1cd;
@@ -268,14 +268,14 @@
 }
 .adventure-lobby .lobby-choice button{
   min-height:43px;
-  border:0;
-  border-radius:2px;
+  border:1px solid #cbb170a8;
+  border-radius:14px 6px 14px 6px;
   background:
-    linear-gradient(#666554d8,#30382ee8),
+    linear-gradient(#777662ed,#343d33f5),
     url("assets/ui/inca-stone-panel-texture.png") center/cover;
-  color:#f5e5b5;
-  box-shadow:inset 0 4px 9px #020504aa,inset 2px 0 #a59c7540,inset -2px 0 #050806bb,inset 0 -2px #b2a16b28,0 1px #c0a65c33;
-  text-shadow:0 2px #050806,0 0 8px #000;
+  color:#fff2c4;
+  box-shadow:inset 0 2px #ead99d4d,inset 0 5px 10px #02050472,inset 2px 0 #bdb28352,inset -2px 0 #050806bb,inset 0 -3px #171d18d9,0 3px 5px #0008,0 0 8px #bca06024;
+  text-shadow:0 2px 1px #050806,0 0 9px #000,0 0 10px #e7c56c55;
   transition:transform .16s,filter .16s,box-shadow .16s;
 }
 .adventure-lobby .lobby-choice button:hover{
@@ -286,23 +286,24 @@
 .adventure-lobby .lobby-choice button:active{transform:translateY(2px);box-shadow:inset 0 6px 12px #010302cc,inset 2px 0 #8a805d33,inset -2px 0 #050806cc}
 .adventure-lobby #createButton{
   background:
-    linear-gradient(#9d7445d9,#533927ed),
+    linear-gradient(#a77d4bf2,#583c28f7),
     url("assets/ui/inca-stone-panel-texture.png") center/cover;
-  color:#fff0bd;
+  color:#fff2c8;
 }
 .adventure-lobby #organizerButton,
 .adventure-lobby #joinSpectatorButton{
   background:
-    linear-gradient(#426253d9,#1d332bed),
+    linear-gradient(#4f7664f0,#203c32f7),
     url("assets/ui/inca-stone-panel-texture.png") center/cover;
-  color:#dffff0;
+  color:#e9fff7;
 }
 .adventure-lobby #joinButton{
   background:
-    linear-gradient(#5c604bd9,#30372ded),
+    linear-gradient(#73765df0,#353e32f7),
     url("assets/ui/inca-stone-panel-texture.png") center/cover;
-  color:#ffe19a;
+  color:#ffe7a2;
 }
+.adventure-lobby .arena-button::before{display:none}
 .adventure-lobby .lobby-choice>span{
   display:flex;
   align-items:center;
