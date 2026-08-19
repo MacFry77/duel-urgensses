@@ -212,10 +212,16 @@
 /* Accueil — dalle d'expédition très ancienne, gravures incas, lianes et feuillage */
 .adventure-lobby .stone-panel{
   isolation:isolate;
-  overflow:visible;
+  overflow:hidden;
   padding:34px 31px 30px;
   border:0;
-  border-radius:5px;
+  border-radius:0;
+  clip-path:polygon(
+    12px 0,38px 3px,72px 0,104px 4px,calc(100% - 76px) 2px,calc(100% - 42px) 0,calc(100% - 16px) 5px,100% 14px,
+    calc(100% - 4px) 48px,100% 82px,calc(100% - 3px) 126px,100% calc(100% - 94px),calc(100% - 5px) calc(100% - 50px),calc(100% - 14px) 100%,
+    calc(100% - 48px) calc(100% - 4px),calc(100% - 86px) 100%,calc(100% - 126px) calc(100% - 3px),82px 100%,48px calc(100% - 5px),14px 100%,0 calc(100% - 14px),
+    4px calc(100% - 48px),0 calc(100% - 86px),3px calc(100% - 132px),0 108px,5px 70px,0 34px
+  );
   background:
     url("assets/ui/inca-stone-frame.png") center/100% 100% no-repeat,
     radial-gradient(ellipse at 50% 37%,transparent 0 35%,#02070642 92%),
@@ -223,27 +229,16 @@
     url("assets/ui/inca-stone-panel-texture.png") center/cover no-repeat,
     #252a22;
   box-shadow:
-    0 8px 0 #0c100c,
-    0 24px 42px #000b,
-    0 0 28px #6f98612b,
     inset 0 18px 24px #a9924930,
     inset 0 -24px 35px #0008,
     inset 18px 0 26px #0004,
     inset -18px 0 26px #0005;
   outline:0;
+  filter:drop-shadow(0 8px 0 #0c100c) drop-shadow(0 20px 20px #000b);
 }
 .adventure-lobby .stone-panel::before,
 .adventure-lobby .stone-panel::after{
-  content:"";
-  position:absolute;
-  z-index:3;
-  width:188px;
-  height:172px;
-  pointer-events:none;
-  background-repeat:no-repeat;
-  background-image:url("assets/ui/jungle-vine-corner.png");
-  background-size:contain;
-  filter:drop-shadow(0 7px 6px #000b);
+  display:none;
 }
 .adventure-lobby .stone-panel::before{
   left:-25px;
@@ -270,13 +265,14 @@
 }
 .adventure-lobby .lobby-actions select,
 .adventure-lobby .lobby-actions input{
-  border:1px solid #c8ac65;
-  border-radius:9px 4px 9px 4px;
+  border:0;
+  border-radius:2px;
   background:
-    linear-gradient(#f0e2b7ee,#d6bf81ee),
-    repeating-linear-gradient(90deg,transparent 0 20px,#7b5c2112 21px);
-  color:#173027;
-  box-shadow:inset 0 0 0 2px #fff5d655,inset 0 -5px 12px #6f501f25,0 4px 0 #071914,0 7px 14px #0005;
+    linear-gradient(#b8ab82e8,#817351f2),
+    url("assets/ui/inca-stone-panel-texture.png") center/cover;
+  color:#17231d;
+  box-shadow:inset 0 3px 7px #342c1b99,inset 2px 0 #d8ca9a55,inset -2px 0 #30291dbb,inset 0 -2px #2b251aaa,0 1px #c1aa6d33;
+  text-shadow:0 1px #dfd2a8;
 }
 .adventure-lobby .lobby-choice button{
   min-height:43px;
@@ -286,16 +282,16 @@
     linear-gradient(#666554d8,#30382ee8),
     url("assets/ui/inca-stone-panel-texture.png") center/cover;
   color:#f5e5b5;
-  box-shadow:inset 0 2px #c4b58455,inset 0 -3px #101711cc,inset 3px 0 #8b896644,inset -3px 0 #090e0bcc,0 5px 0 #090e0b,0 8px 14px #0007;
+  box-shadow:inset 0 4px 9px #020504aa,inset 2px 0 #a59c7540,inset -2px 0 #050806bb,inset 0 -2px #b2a16b28,0 1px #c0a65c33;
   text-shadow:0 2px #050806,0 0 8px #000;
   transition:transform .16s,filter .16s,box-shadow .16s;
 }
 .adventure-lobby .lobby-choice button:hover{
   transform:translateY(-2px);
   filter:brightness(1.14);
-  box-shadow:inset 0 0 0 2px #ffffff24,0 6px 0 #061713,0 10px 18px #0007,0 0 18px #a7d06635;
+  box-shadow:inset 0 3px 7px #02050488,inset 2px 0 #d0bd7444,inset -2px 0 #050806aa,inset 0 -2px #d2b66b38,0 0 15px #a7d06635;
 }
-.adventure-lobby .lobby-choice button:active{transform:translateY(3px);box-shadow:inset 0 0 0 2px #ffffff18,0 1px 0 #061713}
+.adventure-lobby .lobby-choice button:active{transform:translateY(2px);box-shadow:inset 0 6px 12px #010302cc,inset 2px 0 #8a805d33,inset -2px 0 #050806cc}
 .adventure-lobby #createButton{
   background:
     linear-gradient(#9d7445d9,#533927ed),
@@ -332,7 +328,7 @@
 .adventure-lobby .connection-status{color:#b9d5c4;text-shadow:0 1px #000}
 
 @media(max-width:620px){
-  .adventure-lobby .stone-panel{overflow:hidden;padding:31px 22px 26px;border-radius:4px}
+  .adventure-lobby .stone-panel{overflow:hidden;padding:31px 22px 26px;border-radius:0}
   .adventure-lobby .stone-panel::before,
   .adventure-lobby .stone-panel::after{width:130px;height:119px;opacity:.78}
   .adventure-lobby .stone-panel::before{left:-28px;top:-27px}
