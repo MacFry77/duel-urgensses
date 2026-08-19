@@ -31,7 +31,7 @@ async function saveResults(rows){
 }
 const persistenceEnabled = () => Boolean(SUPABASE_URL && SUPABASE_KEY);
 const roomSnapshot = room => ({
-  code:room.code,status:room.status,hostId:room.hostId,totalRounds:room.totalRounds,
+  code:room.code,status:room.status,hostId:room.hostId,totalRounds:room.totalRounds,maxPlayers:room.maxPlayers,
   round:room.round,trick:room.trick,phase:room.phase,leader:room.leader,turn:room.turn,
   leadColor:room.leadColor,played:room.played,message:room.message||'',chat:room.chat,
   resultRecorded:room.resultRecorded,
@@ -66,10 +66,10 @@ async function restoreRooms(){
   const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_active_games?select=code,state&updated_at=gte.${encodeURIComponent(since)}`,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}});
   if(!response.ok){console.error('Restauration des parties impossible :',response.status);return;}
   const rows=await response.json();
-  for(const row of rows){const saved=row.state;if(!saved||saved.code!==row.code||!Array.isArray(saved.players)||!Array.isArray(saved.spectators))continue;saved.players=saved.players.map(player=>({...player,ws:null}));saved.spectators=saved.spectators.map(spectator=>({...spectator,ws:null}));saved.chat=Array.isArray(saved.chat)?saved.chat:[];saved.played=Array.isArray(saved.played)?saved.played:[];rooms.set(saved.code,saved)}
+  for(const row of rows){const saved=row.state;if(!saved||saved.code!==row.code||!Array.isArray(saved.players)||!Array.isArray(saved.spectators))continue;saved.maxPlayers=Math.max(2,Math.min(6,Number(saved.maxPlayers)||6));saved.players=saved.players.map(player=>({...player,ws:null}));saved.spectators=saved.spectators.map(spectator=>({...spectator,ws:null}));saved.chat=Array.isArray(saved.chat)?saved.chat:[];saved.played=Array.isArray(saved.played)?saved.played:[];rooms.set(saved.code,saved)}
   if(rows.length)console.log(`${rooms.size} partie(s) restaurée(s) depuis Supabase.`);
 }
-const aggregateResults = rows => [...rows.reduce((map,row)=>{const character=normalizeCharacter(row.character),value=map.get(character)||{character,games:0,wins:0,losses:0,draws:0,points:0,tricks:0};value.games++;value[row.result==='win'?'wins':row.result==='draw'?'draws':'losses']++;value.points+=Number(row.score)||0;value.tricks+=Number(row.tricks)||0;map.set(character,value);return map;},new Map()).values()].map(r=>({...r,winRate:Math.round(r.wins/r.games*100)})).sort((a,b)=>b.wins-a.wins||b.winRate-a.winRate||b.points-a.points||a.character.localeCompare(b.character,'fr'));
+const aggregateResults = rows => [...rows.reduce((map,row)=>{const character=normalizeCharacter(row.character),value=map.get(character)||{character,games:0,wins:0,losses:0,draws:0,points:0,tricks:0};value.games++;value[row.result==='win'?'wins':row.result==='draw'?'draws':'losses']++;value.points+=Number(row.score)||0;value.tricks+=Number(row.tricks)||0;map.set(character,value);return map;},new Map()).values()].map(r=>({...r,winRate:Math.round(r.wins/r.games*100)})).sort((a,b)=>b.points-a.points||b.wins-a.wins||b.winRate-a.winRate||a.character.localeCompare(b.character,'fr'));
 const server = http.createServer(async (req, res) => {
   const urlPath = decodeURIComponent((req.url || '/').split('?')[0]);
   if(urlPath==='/api/leaderboard') { try { const rows=aggregateResults(await readResults());res.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});return res.end(JSON.stringify(rows)); } catch(error){console.error(error);res.writeHead(500);return res.end('Classement indisponible');} }
@@ -104,7 +104,7 @@ const roll = die => {
   return die;
 };
 const publicState = (room, viewerId) => ({
-  code: room.code, status: room.status, hostId: room.hostId, totalRounds: room.totalRounds,
+  code: room.code, status: room.status, hostId: room.hostId, totalRounds: room.totalRounds,maxPlayers:room.maxPlayers,
   round: room.round, trick: room.trick, phase: room.phase, leader: room.leader,
   turn: room.turn, leadColor: room.leadColor, played: room.played,
   message: room.message || '', viewerId,
@@ -151,6 +151,21 @@ function resolve(room) {
   return nums.reduce((a,b)=>b.die.face>=a.die.face?b:a).player;
 }
 function scoreRound(room){room.players.forEach(p=>{if(p.bid===p.tricks)p.score+=p.bid===0?room.round*10:p.tricks*20;});}
+function removePlayer(room,targetId){
+  const removedIndex=room.players.findIndex(p=>p.id===targetId);if(removedIndex<0)return null;
+  const [removed]=room.players.splice(removedIndex,1);removed.ws&&send(removed.ws,'kicked',{message:'Vous avez été exclu de cette salle par l’hôte.'});
+  room.played=room.played.filter(play=>play.player!==removedIndex).map(play=>({...play,player:play.player>removedIndex?play.player-1:play.player}));
+  if(room.players.length<2&&room.status==='playing'){
+    room.status='lobby';room.phase='lobby';room.round=1;room.trick=1;room.turn=0;room.leader=0;room.leadColor=null;room.played=[];
+    room.players.forEach(p=>{p.score=0;p.bid=null;p.tricks=0;p.dice=[]});return removed;
+  }
+  if(!room.players.length){room.turn=0;room.leader=0;return removed}
+  room.leader=room.leader===removedIndex?0:room.leader>removedIndex?room.leader-1:room.leader;
+  room.turn=room.turn>removedIndex?room.turn-1:room.turn;room.turn%=room.players.length;
+  if(room.phase==='bids'&&room.players.every(p=>Number.isInteger(p.bid))){room.phase='play';room.turn=room.leader}
+  if(room.phase==='play'&&room.played.length===room.players.length){const winner=resolve(room);room.players[winner].tricks++;room.players[winner].totalTricks=(room.players[winner].totalTricks||0)+1;room.leader=winner;room.turn=winner;room.phase='result'}
+  return removed;
+}
 function recordFinishedGame(room){
   if(room.resultRecorded)return;room.resultRecorded=true;const best=Math.max(...room.players.map(p=>p.score)),winners=room.players.filter(p=>p.score===best);
   const now=new Date().toISOString(),gameId=id();const rows=room.players.map(p=>({game_id:gameId,character:normalizeCharacter(p.character),result:winners.length>1&&p.score===best?'draw':p.score===best?'win':'loss',score:p.score,tricks:p.totalTricks||0,played_at:now}));saveResults(rows).catch(console.error);
@@ -165,7 +180,7 @@ function nextStep(room){
 function handle(ws, msg){
   if(msg.type==='create'){
     const roomCode=code(), playerId=id();
-    const room={code:roomCode,status:'lobby',hostId:playerId,totalRounds:Math.max(1,Math.min(8,Number(msg.rounds)||8)),round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[],resultRecorded:false};
+    const room={code:roomCode,status:'lobby',hostId:playerId,totalRounds:Math.max(1,Math.min(8,Number(msg.rounds)||8)),maxPlayers:Math.max(2,Math.min(6,Number(msg.maxPlayers)||2)),round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[],resultRecorded:false};
     if(msg.organizer)room.spectators.push({id:playerId,name:'Organisateur',ws});
     else {const character=normalizeCharacter(String(msg.character||'Personnage').slice(0,24));room.players.push({id:playerId,name:character,character,score:0,bid:null,tricks:0,dice:[],ws});}
     rooms.set(roomCode,room);ws.room=roomCode;ws.playerId=playerId;send(ws,'session',{code:roomCode,playerId});broadcast(room);return;
@@ -181,11 +196,15 @@ function handle(ws, msg){
         const number=room.spectators.filter(s=>s.name.startsWith('Spectateur')).length+1;
         player={id:id(),name:number===1?'Spectateur':`Spectateur ${number}`,ws};room.spectators.push(player);
       }else{
+        const character=normalizeCharacter(String(msg.character||'').slice(0,24));
+        const reclaim=character&&room.players.find(p=>p.character===character&&!p.ws);
+        if(reclaim){player=reclaim;player.ws=ws;}
+        else{
         if(room.status!=='lobby')return fail(ws,'La partie a déjà commencé. Rejoignez-la comme spectateur.');
-        if(room.players.length>=6)return fail(ws,'Cette salle est complète.');
-        const character=normalizeCharacter(String(msg.character||'Personnage').slice(0,24));
+        if(room.players.length>=room.maxPlayers)return fail(ws,`Cette salle est complète (${room.maxPlayers} joueurs maximum).`);
         if(room.players.some(p=>p.character===character))return fail(ws,'Ce personnage est déjà choisi.');
         player={id:id(),name:character,character,score:0,bid:null,tricks:0,dice:[],ws};room.players.push(player);
+        }
       }
     }
     ws.room=room.code;ws.playerId=player.id;send(ws,'session',{code:room.code,playerId:player.id});broadcast(room);return;
@@ -194,6 +213,19 @@ function handle(ws, msg){
   if(msg.type==='chat'){
     const text=String(msg.text||'').trim().slice(0,300);if(!text)return;
     room.chat.push({id:id(),sender:actor.name,text,time:Date.now(),role:spectator?'spectator':'player'});if(room.chat.length>100)room.chat.shift();broadcast(room);return;
+  }
+  if(msg.type==='settings'){
+    if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut modifier la salle.");
+    if(room.status!=='lobby')return fail(ws,'La capacité ne peut être modifiée que dans la salle d’attente.');
+    const maxPlayers=Math.max(2,Math.min(6,Number(msg.maxPlayers)||room.maxPlayers));
+    if(maxPlayers<room.players.length)return fail(ws,`Il y a déjà ${room.players.length} joueurs dans la salle.`);
+    room.maxPlayers=maxPlayers;broadcast(room);return;
+  }
+  if(msg.type==='kick'){
+    if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut exclure un joueur.");
+    if(msg.playerId===room.hostId)return fail(ws,"L'hôte ne peut pas s'exclure lui-même.");
+    if(!removePlayer(room,String(msg.playerId||'')))return fail(ws,'Joueur introuvable.');
+    broadcast(room);return;
   }
   if(msg.type==='leave'){
     if(actor.id===room.hostId){members(room).filter(m=>m.id!==actor.id).forEach(m=>m.ws&&send(m.ws,'closed',{message:'La salle a été fermée par son créateur.'}));rooms.delete(room.code);deletePersistedRoom(room.code);}
@@ -214,7 +246,7 @@ function handle(ws, msg){
   if(msg.type==='newRoom'){
     if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut créer une nouvelle salle.");
     const organizer=!!spectator,roomCode=code(),playerId=id();actor.ws=null;broadcast(room);
-    const fresh={code:roomCode,status:'lobby',hostId:playerId,totalRounds:room.totalRounds,round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[],resultRecorded:false};
+    const fresh={code:roomCode,status:'lobby',hostId:playerId,totalRounds:room.totalRounds,maxPlayers:room.maxPlayers,round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[],resultRecorded:false};
     if(organizer)fresh.spectators.push({id:playerId,name:'Organisateur',ws});
     else fresh.players.push({id:playerId,name:actor.character,character:actor.character,score:0,bid:null,tricks:0,dice:[],ws});
     rooms.set(roomCode,fresh);ws.room=roomCode;ws.playerId=playerId;send(ws,'session',{code:roomCode,playerId});broadcast(fresh);return;
@@ -244,4 +276,4 @@ wss.on('connection',ws=>{ws.isAlive=true;ws.on('pong',()=>ws.isAlive=true);ws.on
 setInterval(()=>{wss.clients.forEach(ws=>{if(!ws.isAlive)return ws.terminate();ws.isAlive=false;ws.ping();});},25000).unref();
 setInterval(()=>{for(const [roomCode,room] of rooms)if(members(room).every(p=>!p.ws)){rooms.delete(roomCode);deletePersistedRoom(roomCode)}},30*60*1000).unref();
 if(require.main===module)restoreRooms().catch(console.error).finally(()=>server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`)));
-module.exports={resolve,publicState};
+module.exports={resolve,publicState,aggregateResults,removePlayer};

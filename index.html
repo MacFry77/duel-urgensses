@@ -13,7 +13,7 @@
   <link rel="manifest" href="/site.webmanifest?v=2">
   <link rel="stylesheet" href="styles.css?v=5">
   <link rel="stylesheet" href="theme.css?v=5">
-  <link rel="stylesheet" href="multiplayer.css?v=19">
+  <link rel="stylesheet" href="multiplayer.css?v=20">
 </head>
 <body>
   <div id="connectionBanner" class="connection-banner hidden">RECONNEXION AU SERVEUR…</div>
@@ -54,6 +54,15 @@
             <option value="8" selected>8 manches</option>
           </select>
         </label>
+        <label>NOMBRE MAXIMAL DE JOUEURS
+          <select id="maxPlayers">
+            <option value="2" selected>2 joueurs</option>
+            <option value="3">3 joueurs</option>
+            <option value="4">4 joueurs</option>
+            <option value="5">5 joueurs</option>
+            <option value="6">6 joueurs</option>
+          </select>
+        </label>
         <div class="lobby-choice">
           <button id="createButton" class="primary arena-button"><span>CRÉER UNE SALLE</span></button>
           <button id="organizerButton" class="spectator-button"><span>CRÉER COMME ORGANISATEUR / SPECTATEUR</span></button>
@@ -80,6 +89,12 @@
       </div>
       <div class="stone-panel">
         <p class="form-title">JOUEURS CONNECTÉS</p>
+        <label id="waitingCapacityLabel" class="waiting-capacity hidden">CAPACITÉ DE LA SALLE
+          <select id="waitingMaxPlayers">
+            <option value="2">2 joueurs</option><option value="3">3 joueurs</option><option value="4">4 joueurs</option>
+            <option value="5">5 joueurs</option><option value="6">6 joueurs</option>
+          </select>
+        </label>
         <div id="waitingPlayers" class="waiting-players"></div>
         <button id="onlineStartButton" class="primary arena-button hidden">LANCER LA PARTIE</button>
         <button id="cancelWaitingButton" class="cancel-waiting">ANNULER ET REVENIR À L’ACCUEIL</button>
@@ -140,7 +155,7 @@
     <button id="closeLeaderboard" class="dialog-close">×</button>
     <p class="kicker">LES LÉGENDES DE L’ARÈNE</p>
     <h2>Hall of Fame</h2>
-    <p class="leaderboard-intro">Chaque victoire fait progresser le personnage joué, quel que soit le navigateur utilisé.</p>
+    <p class="leaderboard-intro">Le classement récompense d’abord le total de points accumulés par chaque personnage, quel que soit le navigateur utilisé.</p>
     <div id="leaderboardBody"></div>
   </dialog>
   <dialog id="galleryDialog" class="gallery-dialog">
@@ -150,6 +165,6 @@
     <p class="gallery-intro">Découvrez tous les personnages disponibles avant de choisir votre champion.</p>
     <div id="galleryGrid" class="gallery-grid"></div>
   </dialog>
-  <script src="game.js?v=19"></script>
+  <script src="game.js?v=20"></script>
 </body>
 </html>
