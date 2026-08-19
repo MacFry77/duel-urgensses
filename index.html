@@ -13,7 +13,7 @@
   <link rel="manifest" href="/site.webmanifest?v=2">
   <link rel="stylesheet" href="styles.css?v=5">
   <link rel="stylesheet" href="theme.css?v=5">
-  <link rel="stylesheet" href="multiplayer.css?v=6">
+  <link rel="stylesheet" href="multiplayer.css?v=7">
 </head>
 <body>
   <div id="connectionBanner" class="connection-banner hidden">RECONNEXION AU SERVEUR…</div>
@@ -23,7 +23,7 @@
         <p class="eyebrow">LE GRAND JEU DE DÉS · ENTRE AMIS</p>
         <h1>DUEL <span>URGENSSES</span></h1>
       </div>
-      <div class="top-actions"><button id="leaveButton" class="leave-room hidden">QUITTER LA PARTIE</button><button id="leaderboardButton" class="outline hall-button">HALL OF FAME</button><button id="rulesButton" class="outline">RÈGLES</button></div>
+      <div class="top-actions"><button id="leaveButton" class="leave-room hidden">QUITTER LA PARTIE</button><button id="galleryButton" class="outline gallery-button">GALERIE DE PERSONNAGES</button><button id="leaderboardButton" class="outline hall-button">HALL OF FAME</button><button id="rulesButton" class="outline">RÈGLES</button></div>
     </header>
 
     <section id="lobby" class="panel lobby adventure-lobby">
@@ -39,7 +39,7 @@
         <div id="inviteNotice" class="invite-notice hidden">
           <span>INVITATION REÇUE</span>
           <strong>Vous êtes invité à rejoindre la salle <b id="invitedRoomCode"></b></strong>
-          <small>Choisissez votre personnage, puis rejoignez la partie.</small>
+          <small>Choisissez votre personnage pour jouer, ou rejoignez comme spectateur.</small>
         </div>
         <label>VOTRE PERSONNAGE<select id="characterSelect"></select></label>
         <label id="roundsLabel">NOMBRE DE MANCHES
@@ -59,6 +59,7 @@
           <button id="organizerButton" class="spectator-button"><span>CRÉER COMME ORGANISATEUR / SPECTATEUR</span></button>
           <span>OU</span>
           <div class="join-row"><input id="roomCodeInput" maxlength="5" placeholder="CODE" aria-label="Code de la salle"><button id="joinButton" class="outline">REJOINDRE</button></div>
+          <button id="joinSpectatorButton" class="spectator-join-button">REJOINDRE COMME SPECTATEUR</button>
         </div>
         <p id="connectionStatus" class="connection-status">Connexion au serveur…</p>
         <small class="lobby-note">DÉS · AUDACE · RÈGLEMENT DE COMPTES</small>
@@ -87,6 +88,7 @@
     </section>
 
     <section id="game" class="game hidden">
+      <div id="spectatorModeNotice" class="spectator-mode-notice hidden">👁 MODE SPECTATEUR · VOUS POUVEZ REGARDER ET UTILISER LE CHAT</div>
       <div class="status-strip">
         <div><small>MANCHE</small><strong id="roundValue">1 / 8</strong></div>
         <div><small>PLI</small><strong id="trickValue">1 / 1</strong></div>
@@ -140,6 +142,13 @@
     <p class="leaderboard-intro">Chaque victoire fait progresser le personnage joué, quel que soit le navigateur utilisé.</p>
     <div id="leaderboardBody"></div>
   </dialog>
-  <script src="game.js?v=8"></script>
+  <dialog id="galleryDialog" class="gallery-dialog">
+    <button id="closeGallery" class="dialog-close">×</button>
+    <p class="kicker">LES CHAMPIONS DE L’ARÈNE</p>
+    <h2>Galerie de personnages</h2>
+    <p class="gallery-intro">Découvrez tous les personnages disponibles avant de choisir votre champion.</p>
+    <div id="galleryGrid" class="gallery-grid"></div>
+  </dialog>
+  <script src="game.js?v=9"></script>
 </body>
 </html>

@@ -14,6 +14,7 @@ const DATA_DIR = path.join(ROOT, 'data');
 const LEADERBOARD_FILE = process.env.LEADERBOARD_FILE || path.join(DATA_DIR, 'leaderboard.json');
 const SUPABASE_URL = String(process.env.SUPABASE_URL || '').replace(/\/$/, '');
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const normalizeCharacter = name => name === 'Adéla' ? 'Adela' : name;
 
 const mime = { '.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.ico':'image/x-icon','.json':'application/json; charset=utf-8','.webmanifest':'application/manifest+json; charset=utf-8' };
 const readLocalResults = () => { try { return JSON.parse(fs.readFileSync(LEADERBOARD_FILE, 'utf8')); } catch { return []; } };
@@ -26,7 +27,7 @@ async function saveResults(rows){
   if(SUPABASE_URL&&SUPABASE_KEY){const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_results`,{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(rows)});if(response.ok)return;console.error('Écriture Supabase impossible :',response.status);}
   writeLocalResults([...readLocalResults(),...rows]);
 }
-const aggregateResults = rows => [...rows.reduce((map,row)=>{const value=map.get(row.character)||{character:row.character,games:0,wins:0,losses:0,draws:0,points:0,tricks:0};value.games++;value[row.result==='win'?'wins':row.result==='draw'?'draws':'losses']++;value.points+=Number(row.score)||0;value.tricks+=Number(row.tricks)||0;map.set(row.character,value);return map;},new Map()).values()].map(r=>({...r,winRate:Math.round(r.wins/r.games*100)})).sort((a,b)=>b.wins-a.wins||b.winRate-a.winRate||b.points-a.points||a.character.localeCompare(b.character,'fr'));
+const aggregateResults = rows => [...rows.reduce((map,row)=>{const character=normalizeCharacter(row.character),value=map.get(character)||{character,games:0,wins:0,losses:0,draws:0,points:0,tricks:0};value.games++;value[row.result==='win'?'wins':row.result==='draw'?'draws':'losses']++;value.points+=Number(row.score)||0;value.tricks+=Number(row.tricks)||0;map.set(character,value);return map;},new Map()).values()].map(r=>({...r,winRate:Math.round(r.wins/r.games*100)})).sort((a,b)=>b.wins-a.wins||b.winRate-a.winRate||b.points-a.points||a.character.localeCompare(b.character,'fr'));
 const server = http.createServer(async (req, res) => {
   const urlPath = decodeURIComponent((req.url || '/').split('?')[0]);
   if(urlPath==='/api/leaderboard') { try { const rows=aggregateResults(await readResults());res.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});return res.end(JSON.stringify(rows)); } catch(error){console.error(error);res.writeHead(500);return res.end('Classement indisponible');} }
@@ -110,7 +111,7 @@ function resolve(room) {
 function scoreRound(room){room.players.forEach(p=>{if(p.bid===p.tricks)p.score+=p.bid===0?room.round*10:p.tricks*20;});}
 function recordFinishedGame(room){
   if(room.resultRecorded)return;room.resultRecorded=true;const best=Math.max(...room.players.map(p=>p.score)),winners=room.players.filter(p=>p.score===best);
-  const now=new Date().toISOString(),gameId=id();const rows=room.players.map(p=>({game_id:gameId,character:p.character,result:winners.length>1&&p.score===best?'draw':p.score===best?'win':'loss',score:p.score,tricks:p.totalTricks||0,played_at:now}));saveResults(rows).catch(console.error);
+  const now=new Date().toISOString(),gameId=id();const rows=room.players.map(p=>({game_id:gameId,character:normalizeCharacter(p.character),result:winners.length>1&&p.score===best?'draw':p.score===best?'win':'loss',score:p.score,tricks:p.totalTricks||0,played_at:now}));saveResults(rows).catch(console.error);
 }
 function nextStep(room){
   if(room.players.every(p=>p.dice.length===0)){
@@ -124,7 +125,7 @@ function handle(ws, msg){
     const roomCode=code(), playerId=id();
     const room={code:roomCode,status:'lobby',hostId:playerId,totalRounds:Math.max(1,Math.min(8,Number(msg.rounds)||8)),round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[],resultRecorded:false};
     if(msg.organizer)room.spectators.push({id:playerId,name:'Organisateur',ws});
-    else {const character=String(msg.character||'Personnage').slice(0,24);room.players.push({id:playerId,name:character,character,score:0,bid:null,tricks:0,dice:[],ws});}
+    else {const character=normalizeCharacter(String(msg.character||'Personnage').slice(0,24));room.players.push({id:playerId,name:character,character,score:0,bid:null,tricks:0,dice:[],ws});}
     rooms.set(roomCode,room);ws.room=roomCode;ws.playerId=playerId;send(ws,'session',{code:roomCode,playerId});broadcast(room);return;
   }
   if(msg.type==='join'){
@@ -133,10 +134,17 @@ function handle(ws, msg){
     if(player){player.ws=ws;}
     else if(spectator){spectator.ws=ws;player=spectator;}
     else{
-      if(room.status!=='lobby')return fail(ws,'La partie a déjà commencé.');
-      if(room.players.length>=6)return fail(ws,'Cette salle est complète.');
-      if(room.players.some(p=>p.character===msg.character))return fail(ws,'Ce personnage est déjà choisi.');
-      const character=String(msg.character||'Personnage').slice(0,24);player={id:id(),name:character,character,score:0,bid:null,tricks:0,dice:[],ws};room.players.push(player);
+      if(msg.spectator){
+        if(room.spectators.length>=20)return fail(ws,'Le nombre maximal de spectateurs est atteint.');
+        const number=room.spectators.filter(s=>s.name.startsWith('Spectateur')).length+1;
+        player={id:id(),name:number===1?'Spectateur':`Spectateur ${number}`,ws};room.spectators.push(player);
+      }else{
+        if(room.status!=='lobby')return fail(ws,'La partie a déjà commencé. Rejoignez-la comme spectateur.');
+        if(room.players.length>=6)return fail(ws,'Cette salle est complète.');
+        const character=normalizeCharacter(String(msg.character||'Personnage').slice(0,24));
+        if(room.players.some(p=>p.character===character))return fail(ws,'Ce personnage est déjà choisi.');
+        player={id:id(),name:character,character,score:0,bid:null,tricks:0,dice:[],ws};room.players.push(player);
+      }
     }
     ws.room=room.code;ws.playerId=player.id;send(ws,'session',{code:room.code,playerId:player.id});broadcast(room);return;
   }
@@ -147,7 +155,7 @@ function handle(ws, msg){
   }
   if(msg.type==='leave'){
     if(actor.id===room.hostId){members(room).filter(m=>m.id!==actor.id).forEach(m=>m.ws&&send(m.ws,'closed',{message:'La salle a été fermée par son créateur.'}));rooms.delete(room.code);}
-    else{room.players=room.players.filter(p=>p.id!==actor.id);room.spectators=room.spectators.filter(p=>p.id!==actor.id);if(room.status==='playing'){room.status='lobby';room.phase='lobby';room.round=1;room.trick=1;room.turn=0;room.leader=0;room.leadColor=null;room.played=[];room.players.forEach(p=>{p.score=0;p.bid=null;p.tricks=0;p.dice=[];});}broadcast(room);}
+    else{room.players=room.players.filter(p=>p.id!==actor.id);room.spectators=room.spectators.filter(p=>p.id!==actor.id);if(player&&room.status==='playing'){room.status='lobby';room.phase='lobby';room.round=1;room.trick=1;room.turn=0;room.leader=0;room.leadColor=null;room.played=[];room.players.forEach(p=>{p.score=0;p.bid=null;p.tricks=0;p.dice=[];});}broadcast(room);}
     ws.room=null;ws.playerId=null;send(ws,'left');return;
   }
   if(msg.type==='start'){
