@@ -43,7 +43,7 @@
 .revealed-bid{display:grid;grid-template-rows:auto 118px;min-width:120px;place-items:center;color:#31493f;text-align:center;animation:bid-hand-reveal .55s cubic-bezier(.2,.9,.25,1.25) both}
 .revealed-bid:nth-child(2){animation-delay:.06s}.revealed-bid:nth-child(3){animation-delay:.12s}.revealed-bid:nth-child(4){animation-delay:.18s}
 .revealed-bid>span{font-size:10px;font-weight:900}
-.bid-gesture{position:relative;display:inline-grid;width:138px;height:116px;place-items:center;filter:drop-shadow(0 7px 6px #000b)}
+.bid-gesture{position:relative;display:inline-grid;width:138px;height:116px;place-items:center;filter:none}
 .bid-gesture img{display:block;max-width:100%;max-height:100%;object-fit:contain}
 .bid-gesture.from-right img{transform:scaleX(-1)}
 /* Variantes de mains : les gestes validés restent strictement identiques. */
@@ -51,7 +51,7 @@
 .bid-gesture.from-right.feminine-hands img{transform:scaleX(-.88) scaleY(.96)}
 .bid-gesture.yannick-hands img{filter:brightness(.48) saturate(.78) sepia(.32) hue-rotate(338deg) contrast(1.12)}
 .bid-gesture em{position:absolute;right:1px;bottom:1px;display:grid;width:24px;height:24px;place-items:center;border:1px solid #ffe49b;border-radius:50%;background:#772a1d;color:#fff3bd;font:900 14px/1 Georgia,serif;box-shadow:0 2px 0 #32120c}
-.bid-gesture.compact{width:34px;height:25px;margin:-8px 0 -6px;vertical-align:middle;filter:drop-shadow(0 2px 2px #0008)}
+.bid-gesture.compact{width:34px;height:25px;margin:-8px 0 -6px;vertical-align:middle;filter:none}
 .bid-gesture.compact em{right:-3px;bottom:-3px;width:14px;height:14px;font-size:8px}
 .bid-metric{display:inline-flex!important;align-items:center;gap:3px}
 @keyframes bid-hand-reveal{from{opacity:0;transform:translateY(18px) scale(.72)}to{opacity:1;transform:none}}
