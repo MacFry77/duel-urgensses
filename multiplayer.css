@@ -36,13 +36,13 @@
 }
 
 /* Révélation simultanée des paris par gestes de mains */
-.bid-reveal{width:min(100%,620px);margin:8px auto 14px;padding:10px 12px;border:1px solid #d7b85f;border-radius:12px;background:linear-gradient(180deg,#173c34ee,#081e1bdd);box-shadow:0 10px 25px #0008,inset 0 0 22px #e3bd3a18}
-.bid-reveal>h3{margin:0 0 7px;color:#ffe08a;font-size:10px;letter-spacing:.18em;text-align:center;text-shadow:0 2px #000}
-.bid-reveal-grid,.mobile-bid-reveal{display:flex;justify-content:center;align-items:end;gap:10px;flex-wrap:wrap}
-.revealed-bid{display:grid;grid-template-rows:auto 86px auto;min-width:88px;place-items:center;color:#fff1b8;text-align:center;animation:bid-hand-reveal .55s cubic-bezier(.2,.9,.25,1.25) both}
+.bid-reveal{width:calc(100% + 30px);max-width:650px;margin:8px -15px 14px;padding:14px 10px 16px;border:1px solid #d7b85f;border-radius:12px;background:linear-gradient(180deg,#173c34ee,#081e1bdd);box-shadow:0 10px 25px #0008,inset 0 0 22px #e3bd3a18}
+.bid-reveal>h3{margin:0 0 9px;color:#ffe08a;font-size:11px;letter-spacing:.18em;text-align:center;text-shadow:0 2px #000}
+.bid-reveal-grid,.mobile-bid-reveal{display:flex;justify-content:center;align-items:end;gap:14px;flex-wrap:wrap}
+.revealed-bid{display:grid;grid-template-rows:auto 108px auto;min-width:110px;place-items:center;color:#fff1b8;text-align:center;animation:bid-hand-reveal .55s cubic-bezier(.2,.9,.25,1.25) both}
 .revealed-bid:nth-child(2){animation-delay:.06s}.revealed-bid:nth-child(3){animation-delay:.12s}.revealed-bid:nth-child(4){animation-delay:.18s}
-.revealed-bid>span{font-size:9px;font-weight:900}.revealed-bid>small{margin-top:-3px;color:#f6d372;font-size:8px;font-weight:900}
-.bid-gesture{position:relative;display:inline-grid;width:100px;height:82px;place-items:center;filter:drop-shadow(0 6px 5px #000b)}
+.revealed-bid>span{font-size:10px;font-weight:900}.revealed-bid>small{margin-top:-2px;color:#f6d372;font-size:9px;font-weight:900}
+.bid-gesture{position:relative;display:inline-grid;width:126px;height:106px;place-items:center;filter:drop-shadow(0 7px 6px #000b)}
 .bid-gesture img{display:block;max-width:100%;max-height:100%;object-fit:contain}
 .bid-gesture.from-right img{transform:scaleX(-1)}
 .bid-gesture em{position:absolute;right:1px;bottom:1px;display:grid;width:24px;height:24px;place-items:center;border:1px solid #ffe49b;border-radius:50%;background:#772a1d;color:#fff3bd;font:900 14px/1 Georgia,serif;box-shadow:0 2px 0 #32120c}
@@ -55,8 +55,8 @@
   .mobile-revealed-bids{border-color:#dabd66;background:linear-gradient(#173b34e8,#071a18ed);box-shadow:0 0 22px #f0bd4540}
   .mobile-revealed-bids h3{color:#ffe08a!important}
   .mobile-bid-reveal{gap:5px}
-  .mobile-bid-reveal .revealed-bid{grid-template-rows:auto 72px auto;min-width:72px}
-  .mobile-bid-reveal .bid-gesture{width:78px;height:68px}
+  .mobile-bid-reveal .revealed-bid{grid-template-rows:auto 82px auto;min-width:82px}
+  .mobile-bid-reveal .bid-gesture{width:92px;height:80px}
 }
 
 /* Salle d'attente — même langage visuel que le panneau d'expédition */
@@ -167,6 +167,13 @@
 }
 .arena .stone-runes::before{left:-31px!important;transform:none!important}
 .arena .stone-runes::after{right:-31px!important;transform:scaleX(-1)!important}
+/* Le parchemin et ses lianes forment déjà le cadre : aucun second contour intérieur. */
+.arena .stone-runes{
+  inset:0!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
 .status-strip{
   background:
     linear-gradient(180deg,#16392fc9,#081f19e8),
