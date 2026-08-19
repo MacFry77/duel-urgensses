@@ -5,13 +5,22 @@ const icons={
   blue:`<svg class="med-icon" viewBox="0 0 48 48" aria-label="Seringue"><path d="M14 29l15-15 7 7-15 15z"/><path d="M33 18L44 7M10 25l5 5M20 35l5 5M17 33L9 41M5 37l8 8"/><path d="M19 29l4 4M22 26l4 4M25 23l4 4"/></svg>`
 };
 const CHARACTERS=[['Pascal','pascal-pirate.png'],['Mathieu','mathieu-luchador.png'],['Pierre','pierre-halloween.png'],['Adela','adela-egyptienne.png'],['JB','jb-cosmonaute.png'],['Romain','romain-poulet.png'],['Natacha','natacha-princesse.png'],['Fanny','fanny-exploratrice.png'],['Félix','felix-cyborg.png'],['Youri','youri-paladin.png'],['Quentin','quentin-dictateur.png'],['Nicolas','nicolas-vigilante.png'],['Yannick','yannick-cardinal.png'],['Cecilia','cecilia-infirmiere.png'],['Thibault','thibault-aventurier.png'],['Polo','polo-dandy.png'],['Édouard','edouard-aviateur.png'],['Justin','justin-judoka.png'],['Charlotte','charlotte-cavaliere.png'],["Catoire d’Arabie",'catoire-arabie.png'],['Rémy','remy-shaolin.png'],['Olivier','olivier-policier.png'],['Raphaël','raphael-scaphandrier.png'],['Éric','eric-druide.png'],['Cyril','cyril-alchimiste.png'],['Rémi','remi-berserker.png'],['Thomas','thomas-capitaine-sous-marin.png'],['Benjamin','benjamin-sherif.png'],['Edwin','edwin-zadiste.png'],['Alexandre','alexandre-hercule-satan.png'],['Erwan','erwan-bucheron.png']];
-const $=id=>document.getElementById(id);let socket,state,session=JSON.parse(localStorage.getItem('duel-session')||'null'),lastChatCount=0;
+const $=id=>document.getElementById(id);let socket,state,session=JSON.parse(localStorage.getItem('duel-session')||'null'),lastChatCount=0,reconnectTimer=null,connectionNumber=0;
 const invitedCode=new URLSearchParams(location.search).get('join')?.trim().toUpperCase().replace(/[^A-Z2-9]/g,'').slice(0,5)||'';
-if(invitedCode){session=null;localStorage.removeItem('duel-session')}
+// Un joueur qui actualise son lien d'invitation doit conserver son identité.
+// On oublie l'ancienne session uniquement si le lien vise une autre salle.
+if(invitedCode&&session?.code!==invitedCode){session=null;localStorage.removeItem('duel-session')}
 const special=c=>['brown','green','blue'].includes(c);const normalizedCharacter=name=>name==='Adéla'?'Adela':name;const characterFile=name=>CHARACTERS.find(c=>c[0]===normalizedCharacter(name))?.[1]||CHARACTERS[0][1];
 const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function dieHTML(d,clickable=false){if(d.hidden)return `<button class="die back" disabled></button>`;const face=special(d.color)&&d.face==='symbol'?icons[d.color]:d.face==='flag'?'<span class="flag">⚑</span>':`<span class="value">${d.face??'?'}</span>`;return `<button class="die ${d.color} ${clickable?'clickable':''}" ${clickable?`data-die="${d.id}"`:''}>${face}</button>`}
-function connect(){const protocol=location.protocol==='https:'?'wss':'ws';$('connectionBanner').classList.toggle('hidden',!state);socket=new WebSocket(`${protocol}://${location.host}`);socket.onopen=()=>{$('connectionStatus').textContent='Serveur connecté.';$('connectionBanner').classList.add('hidden');if(session?.code&&session?.playerId)send('join',{code:session.code,playerId:session.playerId})};socket.onclose=()=>{$('connectionStatus').textContent='Connexion perdue — nouvelle tentative…';$('connectionBanner').classList.toggle('hidden',!state);setTimeout(connect,1500)};socket.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==='session'){session={code:m.code,playerId:m.playerId};localStorage.setItem('duel-session',JSON.stringify(session))}if(m.type==='state'){state=m.state;$('connectionBanner').classList.add('hidden');render()}if(m.type==='left')returnHome();if(m.type==='closed'){alert(m.message);returnHome()}if(m.type==='error')showError(m.message)}}
+function connect(){
+  clearTimeout(reconnectTimer);const attempt=++connectionNumber,protocol=location.protocol==='https:'?'wss':'ws';
+  $('connectionBanner').classList.toggle('hidden',!state);const nextSocket=new WebSocket(`${protocol}://${location.host}`);socket=nextSocket;
+  nextSocket.onopen=()=>{if(attempt!==connectionNumber)return nextSocket.close();$('connectionStatus').textContent='Serveur connecté.';$('connectionBanner').classList.add('hidden');if(session?.code&&session?.playerId)send('join',{code:session.code,playerId:session.playerId})};
+  nextSocket.onclose=()=>{if(attempt!==connectionNumber)return;$('connectionStatus').textContent='Connexion perdue — resynchronisation…';$('connectionBanner').classList.toggle('hidden',!state);reconnectTimer=setTimeout(connect,1500)};
+  nextSocket.onmessage=e=>{if(attempt!==connectionNumber)return;const m=JSON.parse(e.data);if(m.type==='session'){session={code:m.code,playerId:m.playerId};localStorage.setItem('duel-session',JSON.stringify(session))}if(m.type==='state'){state=m.state;$('connectionBanner').classList.add('hidden');render()}if(m.type==='left')returnHome();if(m.type==='closed'){alert(m.message);returnHome()}if(m.type==='error')showError(m.message)}
+}
+function resynchronize(){if(document.visibilityState!=='visible')return;if(!socket||socket.readyState!==WebSocket.OPEN){connect();return}if(session?.code&&session?.playerId)send('join',{code:session.code,playerId:session.playerId})}
 function send(type,payload={}){if(socket?.readyState===WebSocket.OPEN)socket.send(JSON.stringify({type,...payload}));else showError('Le serveur n’est pas encore connecté.')}
 function identity(){const c=CHARACTERS[Number($('characterSelect').value)];return{name:c[0],character:c[0]}}
 function createRoom(){const who=identity();if(who){session=null;localStorage.removeItem('duel-session');send('create',{...who,rounds:Number($('roundCount').value)})}}
@@ -60,6 +69,6 @@ function init(){
   $('chatForm').onsubmit=e=>{e.preventDefault();const text=$('chatInput').value.trim();if(text){send('chat',{text});$('chatInput').value=''}};
   $('rulesButton').onclick=()=>$('rulesDialog').showModal();$('closeRules').onclick=()=>$('rulesDialog').close();$('legend').innerHTML=['brown','green','blue'].map(c=>`<div class="legend-item">${dieHTML({color:c,face:'symbol'})}<span>${COLORS[c]}</span></div>`).join('');connect()
   $('leaderboardButton').onclick=showLeaderboard;$('closeLeaderboard').onclick=()=>$('leaderboardDialog').close();
-  $('galleryButton').onclick=showGallery;$('closeGallery').onclick=()=>$('galleryDialog').close();
+  $('galleryButton').onclick=showGallery;$('closeGallery').onclick=()=>$('galleryDialog').close();document.addEventListener('visibilitychange',resynchronize);window.addEventListener('online',resynchronize);
 }
 init();
