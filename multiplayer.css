@@ -37,10 +37,10 @@
 }
 
 /* Révélation simultanée des paris par gestes de mains */
-.bid-reveal{width:calc(100% + 12px);max-width:700px;margin:8px -6px 14px;padding:15px 12px 17px;border:1px solid #d7b85f;border-radius:12px;background:linear-gradient(180deg,#173c34ee,#081e1bdd);box-shadow:0 10px 25px #0008,inset 0 0 22px #e3bd3a18}
-.bid-reveal>h3{margin:0 0 9px;color:#ffe08a;font-size:11px;letter-spacing:.18em;text-align:center;text-shadow:0 2px #000}
+.bid-reveal{width:calc(100% + 12px);max-width:700px;margin:8px -6px 14px;padding:12px 12px 14px;border:0;border-radius:0;background:radial-gradient(ellipse at center,#173c3424 0%,#173c340d 48%,transparent 76%);box-shadow:none}
+.bid-reveal>h3{margin:0 0 9px;color:#385347;font-size:11px;letter-spacing:.18em;text-align:center;text-shadow:0 1px #fff4c7}
 .bid-reveal-grid,.mobile-bid-reveal{display:flex;justify-content:center;align-items:end;gap:16px;flex-wrap:wrap}
-.revealed-bid{display:grid;grid-template-rows:auto 118px;min-width:120px;place-items:center;color:#fff1b8;text-align:center;animation:bid-hand-reveal .55s cubic-bezier(.2,.9,.25,1.25) both}
+.revealed-bid{display:grid;grid-template-rows:auto 118px;min-width:120px;place-items:center;color:#31493f;text-align:center;animation:bid-hand-reveal .55s cubic-bezier(.2,.9,.25,1.25) both}
 .revealed-bid:nth-child(2){animation-delay:.06s}.revealed-bid:nth-child(3){animation-delay:.12s}.revealed-bid:nth-child(4){animation-delay:.18s}
 .revealed-bid>span{font-size:10px;font-weight:900}
 .bid-gesture{position:relative;display:inline-grid;width:138px;height:116px;place-items:center;filter:drop-shadow(0 7px 6px #000b)}
@@ -57,7 +57,7 @@
 @keyframes bid-hand-reveal{from{opacity:0;transform:translateY(18px) scale(.72)}to{opacity:1;transform:none}}
 
 @media(max-width:620px){
-  .mobile-revealed-bids{border-color:#dabd66;background:linear-gradient(#173b34e8,#071a18ed);box-shadow:0 0 22px #f0bd4540}
+  .mobile-revealed-bids{border-color:transparent;background:radial-gradient(ellipse at center,#173b3488,transparent 78%);box-shadow:none}
   .mobile-revealed-bids h3{color:#ffe08a!important}
   .mobile-bid-reveal{gap:5px}
   .mobile-bid-reveal .revealed-bid{grid-template-rows:auto 82px;min-width:82px}
