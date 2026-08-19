@@ -10,6 +10,10 @@
 @media(max-width:950px){.arena.multiplayer-arena{grid-template-columns:1fr!important}.multiplayer-arena>.table{position:relative;grid-column:1;grid-row:1}.players-grid{grid-column:1;grid-row:2}.arena .players-grid article.player-card{margin-top:180px!important}}
 @media(max-width:620px){.topbar h1{font-size:28px}.shell{padding:10px}.panel.adventure-lobby{padding:26px 18px}.adventure-lobby h2{font-size:31px}.players-grid{grid-template-columns:1fr}.arena.multiplayer-arena{padding:18px 10px!important}.multiplayer-arena>.table{min-height:430px}.arena .players-grid article.player-card{margin-top:165px!important;min-height:250px!important}.players-grid .avatar-zone{top:-170px!important;height:190px!important;width:160px!important}.status-strip strong{font-size:12px}.die{width:50px;height:50px}.played{gap:8px}}
 .spectator-button{padding:12px;border:1px solid #77cbbb;background:#102e2a;color:#d9fff5;font-size:10px;box-shadow:0 4px 0 #071714}.spectator-button:hover{filter:brightness(1.25)}
+.status-strip{grid-template-columns:repeat(4,minmax(0,1fr)) auto}
+.status-strip .spectator-count{display:flex;min-width:58px;align-items:center;justify-content:center;gap:5px;padding:8px 11px;border-right:0;color:#d9c17d;opacity:.82}
+.status-strip .spectator-count span{font-size:13px;filter:grayscale(.15)}
+.status-strip .spectator-count strong{display:inline;margin:0;color:#f7f0d2;font-size:13px;line-height:1}
 .waiting-player.spectator{border:1px dashed #d6b96b;background:#091d1b}.spectator-icon{display:grid!important;place-items:center;width:48px;height:48px;border-radius:50%;background:#263e37;font-size:22px}
 .waiting-capacity{display:block;margin:0 0 14px;color:#ffe09a;font-size:9px;letter-spacing:.13em}.waiting-capacity select{display:block;width:100%;margin-top:7px;padding:10px;border:1px solid #b9964e;background:#132c26;color:#fff2c2;font:700 14px Georgia,serif;font-weight:900}.waiting-capacity select option,
 #waitingMaxPlayers option{
@@ -37,7 +41,7 @@
   .top-actions{flex-wrap:wrap;justify-content:flex-end}.hall-button{order:3}.gallery-button{order:4}.leaderboard-dialog{padding:28px 10px}.leaderboard-row{grid-template-columns:34px minmax(110px,1fr) 34px 48px 48px;padding:4px 6px;font-size:11px}.leaderboard-row>*:last-child{display:none}.leaderboard-character img{width:34px;height:42px}.leaderboard-head{font-size:7px}.gallery-dialog{padding:28px 10px}.gallery-grid{grid-template-columns:repeat(2,minmax(120px,1fr));gap:9px}.gallery-card>div{height:175px}.gallery-card h3{font-size:14px}
   .mobile-tabs{position:sticky;top:0;z-index:30;display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:8px;padding:4px;border:1px solid #bd9d49;background:#102b27;box-shadow:0 6px 18px #0008}
   .mobile-tabs button{padding:12px 4px;border:0;background:#203f38;color:#b7d5cd;font-size:10px}.mobile-tabs button.selected{background:#f0c565;color:#162d28;box-shadow:inset 0 -3px #a95c32}
-  .game{margin-top:10px}.status-strip{position:relative;grid-template-columns:repeat(4,1fr)}.status-strip div{padding:7px 4px;text-align:center}.status-strip small{font-size:6px;letter-spacing:.06em}.status-strip strong{font-size:10px}
+  .game{margin-top:10px}.status-strip{position:relative;grid-template-columns:repeat(4,minmax(0,1fr)) auto}.status-strip div{padding:7px 4px;text-align:center}.status-strip small{font-size:6px;letter-spacing:.06em}.status-strip strong{font-size:10px}.status-strip .spectator-count{min-width:38px;gap:2px;padding:5px 4px}.status-strip .spectator-count span{font-size:10px}.status-strip .spectator-count strong{font-size:10px}
   .arena.multiplayer-arena{display:block!important;min-height:0!important;margin-top:6px!important;padding:10px!important}.multiplayer-arena>.table{display:none!important;position:relative!important;min-height:350px!important;padding:18px 14px!important}.players-grid{display:none!important}
   .multiplayer-arena[data-mobile-view="table"]>.table{display:block!important}.multiplayer-arena[data-mobile-view="hand"]>.players-grid,.multiplayer-arena[data-mobile-view="players"]>.players-grid{display:grid!important}
   .multiplayer-arena[data-mobile-view="hand"] .player-card:not(.is-me){display:none!important}.multiplayer-arena[data-mobile-view="players"] .dice-rack{display:none}.multiplayer-arena[data-mobile-view="players"] .player-card{min-height:120px!important}
@@ -236,13 +240,17 @@
   display:none;
 }
 .adventure-lobby .stone-panel::before{
-  left:-25px;
-  top:-28px;
+  display:block;
+  content:"";
+  position:absolute;
+  z-index:1;
+  inset:35px 24px 43px;
+  background:url("assets/ui/inca-stone-panel-texture.png") center/cover;
+  box-shadow:none;
+  pointer-events:none;
 }
 .adventure-lobby .stone-panel::after{
-  right:-25px;
-  bottom:-29px;
-  transform:rotate(180deg);
+  display:none;
 }
 .adventure-lobby .stone-panel>*{position:relative;z-index:4}
 .adventure-lobby .form-title{
@@ -258,22 +266,24 @@
   box-shadow:inset 0 1px #f3dc9550,inset 0 -3px 7px #000a,0 2px 7px #0007,0 0 12px #c8a75828;
 }
 .adventure-lobby .lobby-actions label{
+  padding-top:5px;
+  background:none;
   color:#fff4c1;
   font-size:12px;
   letter-spacing:.14em;
   font-weight:900;
-  text-shadow:0 2px 2px #020a07,0 0 10px #06130d;
+  text-shadow:0 2px 1px #000,1px 0 2px #000,-1px 0 2px #000,0 0 5px #000;
 }
 .adventure-lobby .lobby-actions select,
 .adventure-lobby .lobby-actions input{
-  border:0;
-  border-radius:2px;
+  border:1px solid #d5bf7d99;
+  border-radius:9px 4px 9px 4px;
   background:
-    linear-gradient(#b8ab82e8,#817351f2),
+    linear-gradient(#978761f2,#63583ff5),
     url("assets/ui/inca-stone-panel-texture.png") center/cover;
   color:#fff8d8;
-  box-shadow:inset 0 3px 7px #342c1b99,inset 2px 0 #d8ca9a55,inset -2px 0 #30291dbb,inset 0 -2px #2b251aaa,0 1px #c1aa6d33;
-  text-shadow:0 1px #2a271b;
+  box-shadow:inset 0 2px #eadba066,inset 0 -4px 8px #241f16aa,0 3px 7px #000a,0 0 0 2px #171c14a8;
+  text-shadow:0 2px 2px #18140c,0 0 6px #000;
   font-weight:900;
   font-size:18px;
 }
@@ -286,13 +296,13 @@
 }
 .adventure-lobby .lobby-choice button{
   min-height:43px;
-  border:1px solid #cbb170a8;
-  border-radius:14px 6px 14px 6px;
+  border:1px solid #ddc27ab8;
+  border-radius:12px 5px 12px 5px;
   background:
     linear-gradient(#777662ed,#343d33f5),
     url("assets/ui/inca-stone-panel-texture.png") center/cover;
   color:#fff2c4;
-  box-shadow:inset 0 2px #ead99d4d,inset 0 5px 10px #02050472,inset 2px 0 #bdb28352,inset -2px 0 #050806bb,inset 0 -3px #171d18d9,0 3px 5px #0008,0 0 8px #bca06024;
+  box-shadow:inset 0 2px #f0dda35c,inset 0 -5px 9px #0205048c,inset 2px 0 #bdb28342,inset -2px 0 #050806aa,0 4px 7px #000b,0 0 0 2px #182019b8,0 0 11px #bca06028;
   text-shadow:0 2px 1px #050806,0 0 10px #000,0 0 10px #f7d28b77;
   transition:transform .16s,filter .16s,box-shadow .16s;
 }
@@ -351,10 +361,8 @@
 
 @media(max-width:620px){
   .adventure-lobby .stone-panel{overflow:visible;padding:31px 22px 26px;border-radius:0}
-  .adventure-lobby .stone-panel::before,
-  .adventure-lobby .stone-panel::after{width:130px;height:119px;opacity:.78}
-  .adventure-lobby .stone-panel::before{left:-28px;top:-27px}
-  .adventure-lobby .stone-panel::after{right:-27px;bottom:-30px}
+  .adventure-lobby .stone-panel::before{inset:31px 19px 39px;width:auto;height:auto;opacity:1}
+  .adventure-lobby .stone-panel::after{display:none}
   .adventure-lobby .form-title{margin:-2px 12px 20px;font-size:11px}
   .adventure-lobby .lobby-choice button{min-height:48px}
 }
@@ -417,18 +425,18 @@
   .arena.multiplayer-arena.radial-arena{
     position:relative!important;
     display:block!important;
-    min-height:790px!important;
+    min-height:840px!important;
     padding:20px 16px 24px!important;
-    overflow:hidden;
+    overflow:visible;
   }
   .arena.multiplayer-arena.radial-arena>.table{
     position:absolute!important;
     z-index:3;
     left:50%!important;
-    top:50%!important;
+    top:59%!important;
     grid-column:auto!important;
     grid-row:auto!important;
-    width:clamp(360px,38%,455px)!important;
+    width:clamp(350px,36%,430px)!important;
     min-height:0!important;
     aspect-ratio:1 / 1!important;
     margin:0!important;
@@ -459,20 +467,31 @@
     top:-142px!important;
     width:142px!important;
     height:158px!important;
-    overflow:hidden;
-    -webkit-mask-image:linear-gradient(#000 0 78%,transparent 100%);
-    mask-image:linear-gradient(#000 0 78%,transparent 100%);
+    overflow:visible;
+    -webkit-mask-image:none;
+    mask-image:none;
   }
   .arena.multiplayer-arena.radial-arena .character-sprite{
     max-height:158px!important;
     object-position:center bottom!important;
+    -webkit-mask-image:linear-gradient(to bottom,#000 0 76%,#000c 86%,transparent 100%);
+    mask-image:linear-gradient(to bottom,#000 0 76%,#000c 86%,transparent 100%);
+  }
+  .arena.multiplayer-arena.radial-arena .avatar-aura{
+    left:-18%!important;
+    right:-18%!important;
+    top:-18%!important;
+    bottom:-12%!important;
+    background:radial-gradient(ellipse at 50% 55%,#fff0a05c 0 18%,#ffbd3a2d 38%,#ff9d2414 55%,transparent 72%)!important;
+    filter:blur(10px)!important;
   }
   .arena.multiplayer-arena.radial-arena .dice-rack{min-height:58px!important;gap:7px!important}
   .arena.multiplayer-arena.radial-arena .die{width:44px!important;height:44px!important}
   .arena.multiplayer-arena.radial-arena .turn-indicator{top:-42px!important}
 
   /* Trois joueurs : un sommet et deux adversaires à la base de l'ellipse. */
-  .radial-arena[data-player-count="3"]>.players-grid>article:nth-child(1){left:50%;top:142px;transform:translateX(-50%)}
+  .radial-arena[data-player-count="3"]>.table{top:63%!important;width:clamp(350px,35%,410px)!important}
+  .radial-arena[data-player-count="3"]>.players-grid>article:nth-child(1){left:50%;top:148px;transform:translateX(-50%)}
   .radial-arena[data-player-count="3"]>.players-grid>article:nth-child(2){left:28px;bottom:30px}
   .radial-arena[data-player-count="3"]>.players-grid>article:nth-child(3){right:28px;bottom:30px}
 
@@ -483,7 +502,7 @@
   .radial-arena[data-player-count="4"]>.players-grid>article:nth-child(4){right:24px;bottom:26px}
 
   /* Cinq et six joueurs : colonnes courbes de part et d'autre du centre. */
-  .radial-arena:is([data-player-count="5"],[data-player-count="6"]){min-height:820px!important}
+  .radial-arena:is([data-player-count="5"],[data-player-count="6"]){min-height:870px!important}
   .radial-arena:is([data-player-count="5"],[data-player-count="6"])>.table{width:clamp(340px,34%,410px)!important}
   .radial-arena:is([data-player-count="5"],[data-player-count="6"])>.players-grid>article.player-card{
     width:clamp(190px,19vw,228px)!important;
