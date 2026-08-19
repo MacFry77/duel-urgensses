@@ -5,7 +5,7 @@ const icons={
   blue:`<svg class="med-icon" viewBox="0 0 48 48" aria-label="Seringue"><path d="M14 29l15-15 7 7-15 15z"/><path d="M33 18L44 7M10 25l5 5M20 35l5 5M17 33L9 41M5 37l8 8"/><path d="M19 29l4 4M22 26l4 4M25 23l4 4"/></svg>`
 };
 const CHARACTERS=[['Pascal','pascal-pirate.png'],['Mathieu','mathieu-luchador.png'],['Pierre','pierre-halloween.png'],['Adela','adela-egyptienne.png'],['JB','jb-cosmonaute.png?v=20260819-2'],['Romain','romain-poulet.png'],['Natacha','natacha-princesse.png'],['Fanny','fanny-exploratrice.png'],['Félix','felix-cyborg.png'],['Youri','youri-paladin.png?v=20260819-2'],['Quentin','quentin-dictateur.png'],['Nicolas','nicolas-vigilante.png'],['Yannick','yannick-cardinal.png?v=20260819-2'],['Cecilia','cecilia-infirmiere.png'],['Thibault','thibault-aventurier.png'],['Polo','polo-dandy.png'],['Édouard','edouard-aviateur.png'],['Justin','justin-judoka.png'],['Charlotte','charlotte-cavaliere.png?v=20260819-2'],["Catoire d’Arabie",'catoire-arabie.png'],['Rémy','remy-shaolin.png'],['Olivier','olivier-policier.png?v=20260819-2'],['Raphaël','raphael-scaphandrier.png?v=20260819-3'],['Éric','eric-druide.png'],['Cyril','cyril-alchimiste.png'],['Rémi','remi-berserker.png'],['Thomas','thomas-capitaine-sous-marin.png'],['Benjamin','benjamin-sherif.png'],['Edwin','edwin-zadiste.png'],['Alexandre','alexandre-hercule-satan.png'],['Erwan','erwan-bucheron.png']];
-const $=id=>document.getElementById(id);let socket,state,session=JSON.parse(localStorage.getItem('duel-session')||'null'),lastChatCount=0,reconnectTimer=null,connectionNumber=0;
+const $=id=>document.getElementById(id);let socket,state,session=JSON.parse(localStorage.getItem('duel-session')||'null'),lastChatCount=0,reconnectTimer=null,connectionNumber=0,leavingRoom=false;
 const invitedCode=new URLSearchParams(location.search).get('join')?.trim().toUpperCase().replace(/[^A-Z2-9]/g,'').slice(0,5)||'';
 // Un joueur qui actualise son lien d'invitation doit conserver son identité.
 // On oublie l'ancienne session uniquement si le lien vise une autre salle.
@@ -21,7 +21,7 @@ function connect(){
   clearTimeout(reconnectTimer);const attempt=++connectionNumber,protocol=location.protocol==='https:'?'wss':'ws';
   $('connectionBanner').classList.toggle('hidden',!state);const nextSocket=new WebSocket(`${protocol}://${location.host}`);socket=nextSocket;
   nextSocket.onopen=()=>{if(attempt!==connectionNumber)return nextSocket.close();$('connectionStatus').textContent='Serveur connecté.';$('connectionBanner').classList.add('hidden');if(session?.code&&session?.playerId)send('join',{code:session.code,playerId:session.playerId})};
-  nextSocket.onclose=()=>{if(attempt!==connectionNumber)return;$('connectionStatus').textContent='Connexion perdue — resynchronisation…';$('connectionBanner').classList.toggle('hidden',!state);reconnectTimer=setTimeout(connect,1500)};
+  nextSocket.onclose=()=>{if(attempt!==connectionNumber||leavingRoom)return;$('connectionStatus').textContent='Connexion perdue — resynchronisation…';$('connectionBanner').classList.toggle('hidden',!state);reconnectTimer=setTimeout(connect,1500)};
   nextSocket.onmessage=e=>{if(attempt!==connectionNumber)return;const m=JSON.parse(e.data);if(m.type==='session'){session={code:m.code,playerId:m.playerId};localStorage.setItem('duel-session',JSON.stringify(session))}if(m.type==='state'){state=m.state;$('connectionBanner').classList.add('hidden');render()}if(m.type==='left')returnHome();if(m.type==='closed'){alert(m.message);returnHome()}if(m.type==='error')showError(m.message)}
 }
 function resynchronize(){if(document.visibilityState!=='visible')return;if(!socket||socket.readyState!==WebSocket.OPEN){connect();return}if(session?.code&&session?.playerId)send('join',{code:session.code,playerId:session.playerId})}
@@ -44,7 +44,25 @@ function showGallery(){
   $('galleryGrid').innerHTML=CHARACTERS.map(([name,file])=>`<article class="gallery-card"><div><img src="assets/characters/${file}" alt="${esc(name)}" loading="lazy"></div><h3>${esc(name)}</h3></article>`).join('');
   $('galleryDialog').showModal();
 }
-function returnHome(){localStorage.removeItem('duel-session');session=null;state=null;const url=new URL(location.href);url.search='';url.hash='';location.href=url.toString()}
+function returnHome(){
+  if(leavingRoom&&state===null)return;
+  leavingRoom=true;clearTimeout(reconnectTimer);connectionNumber++;
+  localStorage.removeItem('duel-session');session=null;state=null;
+  try{socket.onclose=null;socket.close()}catch{}
+  const url=new URL(location.href);url.search='';url.hash='';location.replace(url.toString());
+}
+function leaveCurrentRoom(askConfirmation=true){
+  if(leavingRoom)return;
+  if(askConfirmation&&!confirm('Quitter cette partie et revenir à l’accueil ?'))return;
+  leavingRoom=true;
+  // Le retour local ne dépend plus de la réponse du serveur : indispensable sur mobile/4G.
+  if(socket?.readyState===WebSocket.OPEN){
+    try{socket.send(JSON.stringify({type:'leave'}))}catch{}
+    setTimeout(()=>{leavingRoom=false;returnHome()},180);
+  }else{
+    leavingRoom=false;returnHome();
+  }
+}
 function render(){$('lobby').classList.toggle('hidden',!!state);$('waitingRoom').classList.toggle('hidden',!state||state.status!=='lobby');$('game').classList.toggle('hidden',!state||state.status==='lobby');$('chatPanel').classList.toggle('hidden',!state);$('leaveButton').classList.toggle('hidden',!state);$('spectatorModeNotice').classList.toggle('hidden',!state||state.viewerRole!=='spectator'||state.status==='lobby');renderChat();if(state.status==='lobby')return renderWaiting();renderGame()}
 function renderWaiting(){$('copyCode').textContent=state.code;const spectators=state.spectators.map(s=>`<div class="waiting-player spectator"><span class="spectator-icon">👁</span><span><b>${esc(s.name)}</b><small>ORGANISATEUR / SPECTATEUR${s.id===state.hostId?' · HÔTE':''}</small></span><i class="${s.connected?'online':''}"></i></div>`).join('');$('waitingPlayers').innerHTML=spectators+state.players.map(p=>`<div class="waiting-player"><img src="assets/characters/${characterFile(p.character)}" alt=""><span><b>${esc(p.name)}</b><small>${esc(p.character)}${p.id===state.hostId?' · HÔTE':''}</small></span><i class="${p.connected?'online':''}"></i></div>`).join('');const host=state.viewerId===state.hostId;$('onlineStartButton').classList.toggle('hidden',!host);$('waitingHint').textContent=host?(state.players.length<2?'En attente d’au moins deux joueurs actifs…':`${state.players.length} joueurs prêts. Vous pouvez lancer la partie.`):"L’hôte lancera la partie lorsque tout le monde sera prêt."}
 function renderChat(){if(!state)return;const box=$('chatMessages'),atBottom=box.scrollHeight-box.scrollTop-box.clientHeight<40;box.innerHTML=state.chat.map(m=>`<div class="chat-message ${m.role==='spectator'?'spectator':''}"><b>${esc(m.sender)}</b><span>${esc(m.text)}</span></div>`).join('')||'<p class="chat-empty">Le chat est ouvert. Soyez le premier à parler.</p>';if(atBottom)box.scrollTop=box.scrollHeight;if(state.chat.length>lastChatCount&&$('chatPanel').classList.contains('collapsed'))$('chatBadge').textContent=String(state.chat.length-lastChatCount);lastChatCount=state.chat.length}
@@ -69,7 +87,7 @@ function init(){
   const options=CHARACTERS.map(([name],i)=>`<option value="${i}">${name}</option>`).join('');$('characterSelect').innerHTML=options;
   if(invitedCode){$('roomCodeInput').value=invitedCode;$('invitedRoomCode').textContent=invitedCode;$('inviteNotice').classList.remove('hidden');$('joinButton').textContent='REJOINDRE LA PARTIE';$('lobby').classList.add('invited-lobby')}
   $('createButton').onclick=createRoom;$('organizerButton').onclick=createOrganizer;$('joinButton').onclick=joinRoom;$('joinSpectatorButton').onclick=joinSpectatorRoom;$('roomCodeInput').oninput=e=>e.target.value=e.target.value.toUpperCase().replace(/[^A-Z2-9]/g,'');$('roomCodeInput').onkeydown=e=>{if(e.key==='Enter')joinRoom()};
-  $('onlineStartButton').onclick=()=>send('start');$('nextButton').onclick=()=>send('next');$('resetButton').onclick=()=>send('reset');$('newRoomButton').onclick=()=>send('newRoom');$('leaveButton').onclick=()=>{if(confirm('Quitter cette partie et revenir à l’accueil ?'))send('leave')};$('cancelWaitingButton').onclick=()=>send('leave');$('shareInviteButton').onclick=shareInvitation;$('directInviteButton').onclick=()=>{location.href=`https://wa.me/?text=${encodeURIComponent(invitationText())}`};$('copyInviteButton').onclick=copyInvitation;$('copyCode').onclick=async()=>{await navigator.clipboard.writeText(state.code);$('copyCode').textContent='COPIÉ !';setTimeout(()=>$('copyCode').textContent=state.code,1000)};
+  $('onlineStartButton').onclick=()=>send('start');$('nextButton').onclick=()=>send('next');$('resetButton').onclick=()=>send('reset');$('newRoomButton').onclick=()=>send('newRoom');$('leaveButton').onclick=()=>leaveCurrentRoom(true);$('cancelWaitingButton').onclick=()=>leaveCurrentRoom(false);$('shareInviteButton').onclick=shareInvitation;$('directInviteButton').onclick=()=>{location.href=`https://wa.me/?text=${encodeURIComponent(invitationText())}`};$('copyInviteButton').onclick=copyInvitation;$('copyCode').onclick=async()=>{await navigator.clipboard.writeText(state.code);$('copyCode').textContent='COPIÉ !';setTimeout(()=>$('copyCode').textContent=state.code,1000)};
   $('chatHeader').onclick=()=>{$('chatPanel').classList.toggle('collapsed');$('chatBadge').textContent=''};
   $('chatForm').onsubmit=e=>{e.preventDefault();const text=$('chatInput').value.trim();if(text){send('chat',{text});$('chatInput').value=''}};
   $('rulesButton').onclick=()=>$('rulesDialog').showModal();$('closeRules').onclick=()=>$('rulesDialog').close();$('legend').innerHTML=['brown','green','blue'].map(c=>`<div class="legend-item">${dieHTML({color:c,face:'symbol'})}<span>${COLORS[c]}</span></div>`).join('');connect()
