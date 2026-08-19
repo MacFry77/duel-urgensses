@@ -209,24 +209,28 @@
   .mobile-stage>*{position:relative;z-index:1}
 }
 
-/* Accueil — panneau d'expédition en bois, lianes et feuillage */
+/* Accueil — dalle d'expédition très ancienne, gravures incas, lianes et feuillage */
 .adventure-lobby .stone-panel{
   isolation:isolate;
   overflow:visible;
   padding:34px 31px 30px;
-  border:2px solid #b9964f;
+  border:2px solid #bea15c;
   border-radius:18px 12px 18px 12px;
   background:
-    linear-gradient(145deg,#071a16a8,#112a22c7),
+    radial-gradient(ellipse at 50% 37%,#9b86411f 0 18%,transparent 62%),
+    linear-gradient(145deg,#06171352,#10271e73),
     url("assets/ui/jungle-panel-texture.png") center/cover no-repeat,
     #10241e;
+  background-blend-mode:screen,normal,normal,normal;
   box-shadow:
-    0 10px 0 #081a16,
+    0 10px 0 #071511,
     0 24px 42px #000b,
-    0 0 32px #86ba6930,
-    inset 0 0 0 5px #091d18,
-    inset 0 0 0 7px #67845c,
-    inset 0 0 42px #0008;
+    0 0 32px #86ba6938,
+    inset 0 0 0 5px #071711,
+    inset 0 0 0 7px #78906a,
+    inset 0 0 34px #0006,
+    inset 0 18px 22px #d7bd6640,
+    inset 0 -20px 28px #0008;
 }
 .adventure-lobby .stone-panel::before,
 .adventure-lobby .stone-panel::after{
@@ -261,8 +265,8 @@
   text-shadow:0 2px #081a15,0 0 13px #ffc65e55;
 }
 .adventure-lobby .lobby-actions label{
-  color:#d9e7c5;
-  text-shadow:0 1px #06140f;
+  color:#eef1cd;
+  text-shadow:0 2px 2px #020a07,0 0 8px #06130d;
 }
 .adventure-lobby .lobby-actions select,
 .adventure-lobby .lobby-actions input{
