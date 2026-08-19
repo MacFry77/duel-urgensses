@@ -13,7 +13,7 @@
   <link rel="manifest" href="/site.webmanifest?v=2">
   <link rel="stylesheet" href="styles.css?v=5">
   <link rel="stylesheet" href="theme.css?v=5">
-  <link rel="stylesheet" href="multiplayer.css?v=12">
+  <link rel="stylesheet" href="multiplayer.css?v=13">
 </head>
 <body>
   <div id="connectionBanner" class="connection-banner hidden">RECONNEXION AU SERVEUR…</div>
@@ -103,6 +103,7 @@
           <div class="stone-runes" aria-hidden="true"></div>
           <div class="pulse"></div>
           <p id="message">Chaque joueur annonce son nombre de plis.</p>
+          <div id="bidReveal" class="bid-reveal hidden" aria-live="polite"></div>
           <div id="playedDice" class="played"></div>
           <div id="bidControls" class="bid-controls"></div>
           <button id="nextButton" class="primary hidden">PLI SUIVANT</button>
@@ -149,6 +150,6 @@
     <p class="gallery-intro">Découvrez tous les personnages disponibles avant de choisir votre champion.</p>
     <div id="galleryGrid" class="gallery-grid"></div>
   </dialog>
-  <script src="game.js?v=13"></script>
+  <script src="game.js?v=14"></script>
 </body>
 </html>
