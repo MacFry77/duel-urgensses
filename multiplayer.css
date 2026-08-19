@@ -45,6 +45,10 @@
 .bid-gesture{position:relative;display:inline-grid;width:126px;height:106px;place-items:center;filter:drop-shadow(0 7px 6px #000b)}
 .bid-gesture img{display:block;max-width:100%;max-height:100%;object-fit:contain}
 .bid-gesture.from-right img{transform:scaleX(-1)}
+/* Variantes de mains : les gestes validés restent strictement identiques. */
+.bid-gesture.feminine-hands img{transform:scaleX(.88) scaleY(.96);transform-origin:center bottom;filter:brightness(1.06) saturate(.88)}
+.bid-gesture.from-right.feminine-hands img{transform:scaleX(-.88) scaleY(.96)}
+.bid-gesture.yannick-hands img{filter:brightness(.48) saturate(.78) sepia(.32) hue-rotate(338deg) contrast(1.12)}
 .bid-gesture em{position:absolute;right:1px;bottom:1px;display:grid;width:24px;height:24px;place-items:center;border:1px solid #ffe49b;border-radius:50%;background:#772a1d;color:#fff3bd;font:900 14px/1 Georgia,serif;box-shadow:0 2px 0 #32120c}
 .bid-gesture.compact{width:34px;height:25px;margin:-8px 0 -6px;vertical-align:middle;filter:drop-shadow(0 2px 2px #0008)}
 .bid-gesture.compact em{right:-3px;bottom:-3px;width:14px;height:14px;font-size:8px}
