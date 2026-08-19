@@ -217,6 +217,7 @@
   border:0;
   border-radius:5px;
   background:
+    url("assets/ui/inca-stone-frame.png") center/100% 100% no-repeat,
     radial-gradient(ellipse at 50% 37%,transparent 0 35%,#02070642 92%),
     linear-gradient(145deg,#07130f26,#15291e52),
     url("assets/ui/inca-stone-panel-texture.png") center/cover no-repeat,
@@ -279,10 +280,14 @@
 }
 .adventure-lobby .lobby-choice button{
   min-height:43px;
-  border-radius:10px 4px 10px 4px;
-  border:1px solid #d2b66c;
-  box-shadow:inset 0 0 0 2px #ffffff18,0 4px 0 #061713,0 7px 13px #0005;
-  text-shadow:0 2px #071713;
+  border:0;
+  border-radius:2px;
+  background:
+    linear-gradient(#666554d8,#30382ee8),
+    url("assets/ui/inca-stone-panel-texture.png") center/cover;
+  color:#f5e5b5;
+  box-shadow:inset 0 2px #c4b58455,inset 0 -3px #101711cc,inset 3px 0 #8b896644,inset -3px 0 #090e0bcc,0 5px 0 #090e0b,0 8px 14px #0007;
+  text-shadow:0 2px #050806,0 0 8px #000;
   transition:transform .16s,filter .16s,box-shadow .16s;
 }
 .adventure-lobby .lobby-choice button:hover{
@@ -292,17 +297,22 @@
 }
 .adventure-lobby .lobby-choice button:active{transform:translateY(3px);box-shadow:inset 0 0 0 2px #ffffff18,0 1px 0 #061713}
 .adventure-lobby #createButton{
-  background:linear-gradient(#e59647,#a74328);
-  border-color:#ffd48a;
+  background:
+    linear-gradient(#9d7445d9,#533927ed),
+    url("assets/ui/inca-stone-panel-texture.png") center/cover;
+  color:#fff0bd;
 }
 .adventure-lobby #organizerButton,
 .adventure-lobby #joinSpectatorButton{
-  background:linear-gradient(#285346,#122f29);
+  background:
+    linear-gradient(#426253d9,#1d332bed),
+    url("assets/ui/inca-stone-panel-texture.png") center/cover;
   color:#dffff0;
-  border-color:#729b62;
 }
 .adventure-lobby #joinButton{
-  background:linear-gradient(#4b5537,#293a2d);
+  background:
+    linear-gradient(#5c604bd9,#30372ded),
+    url("assets/ui/inca-stone-panel-texture.png") center/cover;
   color:#ffe19a;
 }
 .adventure-lobby .lobby-choice>span{
