@@ -14,6 +14,8 @@ const DATA_DIR = path.join(ROOT, 'data');
 const LEADERBOARD_FILE = process.env.LEADERBOARD_FILE || path.join(DATA_DIR, 'leaderboard.json');
 const SUPABASE_URL = String(process.env.SUPABASE_URL || '').replace(/\/$/, '');
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const persistenceTimers = new Map();
+const persistenceChains = new Map();
 const normalizeCharacter = name => name === 'Adéla' ? 'Adela' : name;
 
 const mime = { '.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.ico':'image/x-icon','.json':'application/json; charset=utf-8','.webmanifest':'application/manifest+json; charset=utf-8' };
@@ -26,6 +28,46 @@ async function readResults(){
 async function saveResults(rows){
   if(SUPABASE_URL&&SUPABASE_KEY){const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_results`,{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(rows)});if(response.ok)return;console.error('Écriture Supabase impossible :',response.status);}
   writeLocalResults([...readLocalResults(),...rows]);
+}
+const persistenceEnabled = () => Boolean(SUPABASE_URL && SUPABASE_KEY);
+const roomSnapshot = room => ({
+  code:room.code,status:room.status,hostId:room.hostId,totalRounds:room.totalRounds,
+  round:room.round,trick:room.trick,phase:room.phase,leader:room.leader,turn:room.turn,
+  leadColor:room.leadColor,played:room.played,message:room.message||'',chat:room.chat,
+  resultRecorded:room.resultRecorded,
+  players:room.players.map(({ws,...player})=>player),
+  spectators:room.spectators.map(({ws,...spectator})=>spectator)
+});
+async function persistRoom(room){
+  if(!persistenceEnabled())return;
+  const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_active_games?on_conflict=code`,{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({code:room.code,state:roomSnapshot(room),updated_at:new Date().toISOString()})});
+  if(!response.ok)console.error('Sauvegarde de la partie impossible :',response.status,await response.text());
+}
+function queuePersist(room){
+  if(!persistenceEnabled())return;
+  clearTimeout(persistenceTimers.get(room.code));
+  persistenceTimers.set(room.code,setTimeout(()=>{
+    persistenceTimers.delete(room.code);
+    const previous=persistenceChains.get(room.code)||Promise.resolve();
+    const next=previous.catch(()=>{}).then(()=>persistRoom(room));
+    persistenceChains.set(room.code,next);next.finally(()=>{if(persistenceChains.get(room.code)===next)persistenceChains.delete(room.code)});
+  },100));
+}
+function deletePersistedRoom(roomCode){
+  if(!persistenceEnabled())return;
+  clearTimeout(persistenceTimers.get(roomCode));persistenceTimers.delete(roomCode);
+  const previous=persistenceChains.get(roomCode)||Promise.resolve();
+  const next=previous.catch(()=>{}).then(async()=>{const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_active_games?code=eq.${encodeURIComponent(roomCode)}`,{method:'DELETE',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,Prefer:'return=minimal'}});if(!response.ok)console.error('Suppression de la sauvegarde impossible :',response.status)});
+  persistenceChains.set(roomCode,next);next.finally(()=>{if(persistenceChains.get(roomCode)===next)persistenceChains.delete(roomCode)});
+}
+async function restoreRooms(){
+  if(!persistenceEnabled())return;
+  const since=new Date(Date.now()-24*60*60*1000).toISOString();
+  const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_active_games?select=code,state&updated_at=gte.${encodeURIComponent(since)}`,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}});
+  if(!response.ok){console.error('Restauration des parties impossible :',response.status);return;}
+  const rows=await response.json();
+  for(const row of rows){const saved=row.state;if(!saved||saved.code!==row.code||!Array.isArray(saved.players)||!Array.isArray(saved.spectators))continue;saved.players=saved.players.map(player=>({...player,ws:null}));saved.spectators=saved.spectators.map(spectator=>({...spectator,ws:null}));saved.chat=Array.isArray(saved.chat)?saved.chat:[];saved.played=Array.isArray(saved.played)?saved.played:[];rooms.set(saved.code,saved)}
+  if(rows.length)console.log(`${rooms.size} partie(s) restaurée(s) depuis Supabase.`);
 }
 const aggregateResults = rows => [...rows.reduce((map,row)=>{const character=normalizeCharacter(row.character),value=map.get(character)||{character,games:0,wins:0,losses:0,draws:0,points:0,tricks:0};value.games++;value[row.result==='win'?'wins':row.result==='draw'?'draws':'losses']++;value.points+=Number(row.score)||0;value.tricks+=Number(row.tricks)||0;map.set(character,value);return map;},new Map()).values()].map(r=>({...r,winRate:Math.round(r.wins/r.games*100)})).sort((a,b)=>b.wins-a.wins||b.winRate-a.winRate||b.points-a.points||a.character.localeCompare(b.character,'fr'));
 const server = http.createServer(async (req, res) => {
@@ -79,7 +121,7 @@ const publicState = (room, viewerId) => ({
   }))
 });
 const members = room => [...room.players,...room.spectators];
-const broadcast = room => members(room).forEach(p => p.ws && send(p.ws,'state',{state:publicState(room,p.id)}));
+const broadcast = room => {members(room).forEach(p => p.ws && send(p.ws,'state',{state:publicState(room,p.id)}));queuePersist(room)};
 const fail = (ws, message) => send(ws,'error',{message});
 const currentPlayer = room => room.players[room.turn];
 
@@ -154,7 +196,7 @@ function handle(ws, msg){
     room.chat.push({id:id(),sender:actor.name,text,time:Date.now(),role:spectator?'spectator':'player'});if(room.chat.length>100)room.chat.shift();broadcast(room);return;
   }
   if(msg.type==='leave'){
-    if(actor.id===room.hostId){members(room).filter(m=>m.id!==actor.id).forEach(m=>m.ws&&send(m.ws,'closed',{message:'La salle a été fermée par son créateur.'}));rooms.delete(room.code);}
+    if(actor.id===room.hostId){members(room).filter(m=>m.id!==actor.id).forEach(m=>m.ws&&send(m.ws,'closed',{message:'La salle a été fermée par son créateur.'}));rooms.delete(room.code);deletePersistedRoom(room.code);}
     else{room.players=room.players.filter(p=>p.id!==actor.id);room.spectators=room.spectators.filter(p=>p.id!==actor.id);if(player&&room.status==='playing'){room.status='lobby';room.phase='lobby';room.round=1;room.trick=1;room.turn=0;room.leader=0;room.leadColor=null;room.played=[];room.players.forEach(p=>{p.score=0;p.bid=null;p.tricks=0;p.dice=[];});}broadcast(room);}
     ws.room=null;ws.playerId=null;send(ws,'left');return;
   }
@@ -200,6 +242,6 @@ function handle(ws, msg){
 }
 wss.on('connection',ws=>{ws.isAlive=true;ws.on('pong',()=>ws.isAlive=true);ws.on('message',raw=>{try{handle(ws,JSON.parse(raw));}catch(e){console.error(e);fail(ws,'Action invalide.');}});ws.on('close',()=>{const room=rooms.get(ws.room),p=room&&members(room).find(x=>x.id===ws.playerId);if(p&&p.ws===ws){p.ws=null;broadcast(room);}});});
 setInterval(()=>{wss.clients.forEach(ws=>{if(!ws.isAlive)return ws.terminate();ws.isAlive=false;ws.ping();});},25000).unref();
-setInterval(()=>{for(const [roomCode,room] of rooms)if(members(room).every(p=>!p.ws))rooms.delete(roomCode);},30*60*1000).unref();
-if(require.main===module)server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`));
+setInterval(()=>{for(const [roomCode,room] of rooms)if(members(room).every(p=>!p.ws)){rooms.delete(roomCode);deletePersistedRoom(roomCode)}},30*60*1000).unref();
+if(require.main===module)restoreRooms().catch(console.error).finally(()=>server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`)));
 module.exports={resolve,publicState};

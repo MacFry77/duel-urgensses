@@ -12,3 +12,17 @@ create index if not exists duel_results_played_at_idx on public.duel_results (pl
 create index if not exists duel_results_character_idx on public.duel_results (character);
 
 alter table public.duel_results enable row level security;
+
+-- Sauvegarde privée des parties en cours. Cette table ne possède aucune
+-- politique publique : seule la clé secrète utilisée par le serveur Render
+-- peut lire ou modifier son contenu.
+create table if not exists public.duel_active_games (
+  code text primary key,
+  state jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists duel_active_games_updated_at_idx
+  on public.duel_active_games (updated_at desc);
+
+alter table public.duel_active_games enable row level security;
