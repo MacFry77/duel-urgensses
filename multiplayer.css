@@ -214,23 +214,22 @@
   isolation:isolate;
   overflow:visible;
   padding:34px 31px 30px;
-  border:2px solid #bea15c;
-  border-radius:18px 12px 18px 12px;
+  border:0;
+  border-radius:5px;
   background:
-    radial-gradient(ellipse at 50% 37%,#9b86411f 0 18%,transparent 62%),
-    linear-gradient(145deg,#06171352,#10271e73),
-    url("assets/ui/jungle-panel-texture.png") center/cover no-repeat,
-    #10241e;
-  background-blend-mode:screen,normal,normal,normal;
+    radial-gradient(ellipse at 50% 37%,transparent 0 35%,#02070642 92%),
+    linear-gradient(145deg,#07130f26,#15291e52),
+    url("assets/ui/inca-stone-panel-texture.png") center/cover no-repeat,
+    #252a22;
   box-shadow:
-    0 10px 0 #071511,
+    0 8px 0 #0c100c,
     0 24px 42px #000b,
-    0 0 32px #86ba6938,
-    inset 0 0 0 5px #071711,
-    inset 0 0 0 7px #78906a,
-    inset 0 0 34px #0006,
-    inset 0 18px 22px #d7bd6640,
-    inset 0 -20px 28px #0008;
+    0 0 28px #6f98612b,
+    inset 0 18px 24px #a9924930,
+    inset 0 -24px 35px #0008,
+    inset 18px 0 26px #0004,
+    inset -18px 0 26px #0005;
+  outline:0;
 }
 .adventure-lobby .stone-panel::before,
 .adventure-lobby .stone-panel::after{
@@ -323,7 +322,7 @@
 .adventure-lobby .connection-status{color:#b9d5c4;text-shadow:0 1px #000}
 
 @media(max-width:620px){
-  .adventure-lobby .stone-panel{overflow:hidden;padding:31px 22px 26px;border-radius:15px}
+  .adventure-lobby .stone-panel{overflow:hidden;padding:31px 22px 26px;border-radius:4px}
   .adventure-lobby .stone-panel::before,
   .adventure-lobby .stone-panel::after{width:130px;height:119px;opacity:.78}
   .adventure-lobby .stone-panel::before{left:-28px;top:-27px}
