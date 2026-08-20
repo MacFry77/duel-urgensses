@@ -273,6 +273,11 @@ function handle(ws, msg){
     const text=String(msg.text||'').trim().slice(0,300);if(!text)return;
     room.chat.push({id:id(),sender:actor.name,text,time:Date.now(),role:spectator?'spectator':'player'});if(room.chat.length>100)room.chat.shift();broadcast(room);return;
   }
+  if(msg.type==='renameSpectator'){
+    if(!spectator)return fail(ws,'Seul un spectateur peut utiliser ce nom.');
+    const name=cleanDisplayName(msg.name);if(!name)return fail(ws,'Le nom du spectateur est vide.');
+    spectator.name=name;broadcast(room);return;
+  }
   if(msg.type==='settings'){
     if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut modifier la salle.");
     if(room.status!=='lobby')return fail(ws,'Les réglages ne peuvent être modifiés que dans la salle d’attente.');
