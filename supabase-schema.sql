@@ -26,3 +26,19 @@ create index if not exists duel_active_games_updated_at_idx
   on public.duel_active_games (updated_at desc);
 
 alter table public.duel_active_games enable row level security;
+
+-- Abonnements Web Push privés. L'adresse d'abonnement et ses clés ne doivent
+-- jamais être exposées au navigateur d'un autre joueur : seul Render y accède
+-- avec la clé service_role.
+create table if not exists public.duel_push_subscriptions (
+  endpoint text primary key,
+  subscription jsonb not null,
+  user_agent text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists duel_push_subscriptions_updated_at_idx
+  on public.duel_push_subscriptions (updated_at desc);
+
+alter table public.duel_push_subscriptions enable row level security;

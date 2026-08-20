@@ -20,6 +20,8 @@ Ouvrir ensuite `http://localhost:3000`. Pour simuler plusieurs joueurs, utiliser
 - validation serveur des paris, couleurs et tours ;
 - 2 à 6 joueurs, dans la limite des 36 dés physiques ;
 - interface adaptative pour ordinateur et smartphone.
+- application web installable (PWA) sur ordinateur, iPhone et Android ;
+- notifications Web Push facultatives pour les nouveaux défis, même lorsque le jeu est fermé ;
 - mode organisateur/spectateur : création et lancement sans occuper un siège ni voir les dés cachés ;
 - chat commun avec pseudonyme, disponible avant et pendant la partie.
 
@@ -44,3 +46,12 @@ Le fichier `render.yaml` configure un service Node.js gratuit dans la région de
 - Health Check Path : `/`
 
 Le serveur utilise automatiquement la variable `PORT` fournie par Render.
+
+## Notifications Web Push
+
+1. Exécuter `supabase-schema.sql` dans l’éditeur SQL Supabase afin de créer `duel_push_subscriptions`.
+2. Générer une paire de clés avec `npm run generate-vapid`.
+3. Ajouter dans Render les variables secrètes `VAPID_PUBLIC_KEY` et `VAPID_PRIVATE_KEY` affichées par la commande.
+4. Ajouter `VAPID_SUBJECT=https://duel-urgensses.onrender.com/`, puis redéployer.
+
+Chaque appareil s’abonne volontairement avec le bouton **Activer les alertes**. Sur iPhone/iPad (iOS 16.4 ou ultérieur), le jeu doit d’abord être ajouté à l’écran d’accueil. Les abonnements invalides sont automatiquement supprimés lorsque leur service Push répond `404` ou `410`.

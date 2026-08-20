@@ -6,12 +6,14 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "generate-vapid": "node scripts/generate-vapid-keys.js"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
+    "web-push": "^3.6.7",
     "ws": "^8.18.0"
   }
 }

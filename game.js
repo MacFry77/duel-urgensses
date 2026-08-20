@@ -6,7 +6,7 @@ const icons={
 };
 const CHARACTERS=[['Pascal','pascal-pirate.png'],['Mathieu','mathieu-luchador.png'],['Pierre','pierre-halloween.png'],['Adela','adela-egyptienne.png'],['JB','jb-cosmonaute.png?v=20260819-2'],['Romain','romain-poulet.png'],['Natacha','natacha-princesse.png'],['Fanny','fanny-exploratrice.png'],['Félix','felix-cyborg.png'],['Youri','youri-paladin.png?v=20260819-2'],['Quentin','quentin-dictateur.png'],['Nicolas','nicolas-vigilante.png'],['Yannick','yannick-cardinal.png?v=20260819-2'],['Cecilia','cecilia-infirmiere.png'],['Thibault','thibault-aventurier.png'],['Polo','polo-dandy.png'],['Édouard','edouard-aviateur.png'],['Justin','justin-judoka.png'],['Charlotte','charlotte-cavaliere.png?v=20260819-2'],["Catoire d’Arabie",'catoire-arabie.png'],['Rémy','remy-shaolin.png'],['Olivier','olivier-cycliste.png?v=20260820-3'],['Raphaël','raphael-scaphandrier.png?v=20260819-3'],['Éric','eric-druide.png'],['Cyril','cyril-alchimiste.png'],['Rémi','remi-berserker.png'],['Thomas','thomas-capitaine-sous-marin.png'],['Benjamin','benjamin-sherif.png'],['Edwin','edwin-zadiste.png'],['Alexandre','alexandre-hercule-satan.png?v=20260819-2'],['Erwan','erwan-bucheron.png'],['Ravin','ravin-pizzaiolo.png?v=20260820-1']];
 const FEMININE_HAND_CHARACTERS=new Set(['Adela','Natacha','Fanny','Cecilia','Charlotte']);
-const $=id=>document.getElementById(id);let socket,state,openLobbies=[],session=JSON.parse(localStorage.getItem('duel-session')||'null'),lastChatCount=0,reconnectTimer=null,connectionNumber=0,leavingRoom=false,errorTimer=null;
+const $=id=>document.getElementById(id);let socket,state,openLobbies=[],session=JSON.parse(localStorage.getItem('duel-session')||'null'),lastChatCount=0,reconnectTimer=null,connectionNumber=0,leavingRoom=false,errorTimer=null,swRegistration=null,deferredInstallPrompt=null,pushEndpoint='',pushPublicKey='';
 const invitedCode=new URLSearchParams(location.search).get('join')?.trim().toUpperCase().replace(/[^A-Z2-9]/g,'').slice(0,5)||'';
 // Un joueur qui actualise son lien d'invitation doit conserver son identité.
 // On oublie l'ancienne session uniquement si le lien vise une autre salle.
@@ -34,8 +34,8 @@ function connect(){
 function resynchronize(){if(document.visibilityState!=='visible')return;if(!socket||socket.readyState!==WebSocket.OPEN){connect();return}if(session?.code&&session?.playerId)send('join',{code:session.code,playerId:session.playerId})}
 function send(type,payload={}){if(socket?.readyState===WebSocket.OPEN)socket.send(JSON.stringify({type,...payload}));else showError('Le serveur n’est pas encore connecté.')}
 function identity(){const c=CHARACTERS[Number($('characterSelect').value)];return{name:c[0],character:c[0]}}
-function createRoom(){const who=identity();if(who){session=null;localStorage.removeItem('duel-session');send('create',{...who,rounds:Number($('roundCount').value),maxPlayers:Number($('maxPlayers').value)})}}
-function createOrganizer(){session=null;localStorage.removeItem('duel-session');send('create',{name:'Organisateur',organizer:true,rounds:Number($('roundCount').value),maxPlayers:Number($('maxPlayers').value)})}
+function createRoom(){const who=identity();if(who){session=null;localStorage.removeItem('duel-session');send('create',{...who,rounds:Number($('roundCount').value),maxPlayers:Number($('maxPlayers').value),pushEndpoint})}}
+function createOrganizer(){session=null;localStorage.removeItem('duel-session');send('create',{name:'Organisateur',organizer:true,rounds:Number($('roundCount').value),maxPlayers:Number($('maxPlayers').value),pushEndpoint})}
 function joinRoom(){const who=identity(),code=$('roomCodeInput').value.trim().toUpperCase();if(who&&code){session=null;localStorage.removeItem('duel-session');send('join',{...who,code})}else if(who)showError('Indiquez le code de la salle.')}
 function joinSpectatorRoom(){const code=$('roomCodeInput').value.trim().toUpperCase();if(!code)return showError('Indiquez le code de la salle.');session=null;localStorage.removeItem('duel-session');send('join',{code,spectator:true})}
 function renderOpenChallenges(){
@@ -44,6 +44,39 @@ function renderOpenChallenges(){
   list.innerHTML=openLobbies.length?openLobbies.map(room=>`<article class="open-challenge"><div><strong>${esc(room.host)} lance un défi</strong><small>${room.rounds} manche${room.rounds>1?'s':''} · ${room.players}/${room.maxPlayers} joueurs</small></div><button data-open-room="${esc(room.code)}">REJOINDRE</button></article>`).join(''):'<p>Aucun défi ouvert pour le moment.</p>';
   list.querySelectorAll('[data-open-room]').forEach(button=>button.onclick=()=>{$('roomCodeInput').value=button.dataset.openRoom;joinRoom()});
 }
+const iosDevice=()=>/iphone|ipad|ipod/i.test(navigator.userAgent);
+const standaloneApp=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const vapidBytes=value=>{const padding='='.repeat((4-value.length%4)%4),base64=(value+padding).replace(/-/g,'+').replace(/_/g,'/'),raw=atob(base64);return Uint8Array.from([...raw].map(char=>char.charCodeAt(0)))};
+async function syncPushSubscription(subscription){
+  const response=await fetch('/api/push/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subscription:subscription.toJSON()})});
+  if(!response.ok)throw new Error('Enregistrement de l’alerte impossible.');pushEndpoint=subscription.endpoint;
+}
+async function refreshPushUI(){
+  const button=$('pushToggleButton'),status=$('pushStatus'),install=$('installAppButton');if(!button||!status)return;
+  if(!('serviceWorker'in navigator)||!('PushManager'in window)||!('Notification'in window)){button.disabled=true;button.textContent='ALERTES NON COMPATIBLES';status.textContent='Ce navigateur ne permet pas les notifications Web Push.';return}
+  if(iosDevice()&&!standaloneApp()){button.disabled=false;button.textContent='📲 INSTALLER POUR LES ALERTES';install.classList.add('hidden');status.textContent='Sur iPhone : Partager → Sur l’écran d’accueil, puis ouvrez l’application.';return}
+  const subscription=swRegistration?await swRegistration.pushManager.getSubscription():null;pushEndpoint=subscription?.endpoint||'';
+  if(!pushPublicKey&&!subscription){button.disabled=true;button.textContent='ALERTES EN ATTENTE';status.textContent='La configuration des notifications doit être terminée sur Render.';install.classList.toggle('hidden',!deferredInstallPrompt||standaloneApp());return}
+  button.disabled=false;button.textContent=subscription?'🔕 DÉSACTIVER LES ALERTES':'🔔 ACTIVER LES ALERTES';button.classList.toggle('enabled',!!subscription);
+  status.textContent=subscription?'Alertes actives sur cet appareil.':'Soyez prévenu lorsqu’un nouveau défi est lancé.';
+  install.classList.toggle('hidden',!deferredInstallPrompt||standaloneApp());
+}
+async function togglePush(){
+  if(iosDevice()&&!standaloneApp()){showError('Sur iPhone, utilisez Partager → Sur l’écran d’accueil, puis ouvrez l’application installée.');return}
+  try{
+    if(!swRegistration)swRegistration=await navigator.serviceWorker.ready;
+    if(pushEndpoint){const current=await swRegistration.pushManager.getSubscription(),endpoint=current?.endpoint||pushEndpoint;if(current)await current.unsubscribe();await fetch('/api/push/subscribe',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({endpoint})});pushEndpoint='';await refreshPushUI();return}
+    if(!pushPublicKey)throw new Error('Les clés de notification ne sont pas encore configurées sur Render.');
+    const permission=await Notification.requestPermission();if(permission!=='granted')throw new Error('Les notifications n’ont pas été autorisées.');
+    const subscription=await swRegistration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:vapidBytes(pushPublicKey)});
+    await syncPushSubscription(subscription);await refreshPushUI();
+  }catch(error){showError(error.message||'Impossible d’activer les alertes sur cet appareil.')}
+}
+async function initPWA(){
+  if(!('serviceWorker'in navigator))return refreshPushUI();
+  try{swRegistration=await navigator.serviceWorker.register('/sw.js?v=1');await navigator.serviceWorker.ready;const config=await fetch('/api/push/public-key',{cache:'no-store'}).then(response=>response.json());pushPublicKey=config.enabled?config.publicKey:'';const existing=await swRegistration.pushManager.getSubscription();if(existing)await syncPushSubscription(existing);await refreshPushUI()}catch(error){console.error(error);$('pushStatus').textContent='Les alertes sont momentanément indisponibles.'}
+}
+async function installApp(){if(!deferredInstallPrompt)return;await deferredInstallPrompt.prompt();deferredInstallPrompt=null;await refreshPushUI()}
 function invitationUrl(){const url=new URL(location.href);url.search='';url.hash='';url.searchParams.set('join',state.code);return url.toString()}
 function invitationText(){return `Je t’invite à jouer à Duel Urgensses ! Rejoins directement ma partie : ${invitationUrl()}`}
 async function copyInvitation(){try{await navigator.clipboard.writeText(invitationUrl());$('copyInviteButton').textContent='LIEN COPIÉ !';setTimeout(()=>$('copyInviteButton').textContent='COPIER LE LIEN',1400)}catch{showError('Impossible de copier le lien sur cet appareil.')}}
@@ -106,12 +139,12 @@ function renderMobileStage(){
 function init(){
   const options=CHARACTERS.map(([name],i)=>`<option value="${i}">${name}</option>`).join('');$('characterSelect').innerHTML=options;
   if(invitedCode){$('roomCodeInput').value=invitedCode;$('invitedRoomCode').textContent=invitedCode;$('inviteNotice').classList.remove('hidden');$('joinButton').textContent='REJOINDRE LA PARTIE';$('lobby').classList.add('invited-lobby')}
-  $('createButton').onclick=createRoom;$('organizerButton').onclick=createOrganizer;$('joinButton').onclick=joinRoom;$('joinSpectatorButton').onclick=joinSpectatorRoom;$('roomCodeInput').oninput=e=>e.target.value=e.target.value.toUpperCase().replace(/[^A-Z2-9]/g,'');$('roomCodeInput').onkeydown=e=>{if(e.key==='Enter')joinRoom()};
+  $('createButton').onclick=createRoom;$('organizerButton').onclick=createOrganizer;$('joinButton').onclick=joinRoom;$('joinSpectatorButton').onclick=joinSpectatorRoom;$('pushToggleButton').onclick=togglePush;$('installAppButton').onclick=installApp;$('roomCodeInput').oninput=e=>e.target.value=e.target.value.toUpperCase().replace(/[^A-Z2-9]/g,'');$('roomCodeInput').onkeydown=e=>{if(e.key==='Enter')joinRoom()};
   $('onlineStartButton').onclick=()=>send('start');$('waitingMaxPlayers').onchange=e=>{const value=Number(e.target.value);if(value<state.players.length){e.target.value=String(state.maxPlayers);return showError(`Il y a déjà ${state.players.length} joueurs dans la salle.`)}send('settings',{maxPlayers:value,rounds:state.totalRounds})};$('waitingRoundCount').onchange=e=>send('settings',{maxPlayers:state.maxPlayers,rounds:Number(e.target.value)});$('nextButton').onclick=()=>send('next');$('resetButton').onclick=()=>send('reset');$('newRoomButton').onclick=()=>send('newRoom');$('leaveButton').onclick=()=>leaveCurrentRoom(true);$('cancelWaitingButton').onclick=()=>leaveCurrentRoom(false);$('shareInviteButton').onclick=shareInvitation;$('directInviteButton').onclick=()=>{location.href=`https://wa.me/?text=${encodeURIComponent(invitationText())}`};$('copyInviteButton').onclick=copyInvitation;$('copyCode').onclick=async()=>{await navigator.clipboard.writeText(state.code);$('copyCode').textContent='COPIÉ !';setTimeout(()=>$('copyCode').textContent=state.code,1000)};
   $('chatHeader').onclick=()=>{$('chatPanel').classList.toggle('collapsed');$('chatBadge').textContent=''};
   $('chatForm').onsubmit=e=>{e.preventDefault();const text=$('chatInput').value.trim();if(text){send('chat',{text});$('chatInput').value=''}};
   $('rulesButton').onclick=()=>$('rulesDialog').showModal();$('closeRules').onclick=()=>$('rulesDialog').close();$('legend').innerHTML=['brown','green','blue'].map(c=>`<div class="legend-item">${dieHTML({color:c,face:'symbol'})}<span>${COLORS[c]}</span></div>`).join('');connect()
   $('leaderboardButton').onclick=showLeaderboard;$('closeLeaderboard').onclick=()=>$('leaderboardDialog').close();
-  $('galleryButton').onclick=showGallery;$('closeGallery').onclick=()=>$('galleryDialog').close();document.addEventListener('visibilitychange',resynchronize);window.addEventListener('online',resynchronize);
+  $('galleryButton').onclick=showGallery;$('closeGallery').onclick=()=>$('galleryDialog').close();document.addEventListener('visibilitychange',resynchronize);window.addEventListener('online',resynchronize);window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstallPrompt=event;refreshPushUI()});window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;refreshPushUI()});initPWA();
 }
 init();

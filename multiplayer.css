@@ -661,4 +661,10 @@
 .open-challenge small{margin-top:4px;color:#9fc0a6;font-size:.61rem;letter-spacing:.04em}
 .open-challenge button{min-height:35px;padding:6px 12px;border:1px solid #b69a58;border-radius:6px;background:linear-gradient(#375f4d,#173629);color:#fff2bd;font:700 .63rem Georgia,serif;letter-spacing:.08em;text-shadow:0 1px #000;box-shadow:inset 0 1px #ffffff2b,0 2px 5px #0008;cursor:pointer}
 .open-challenge button:hover{filter:brightness(1.18)}
+.push-controls{display:grid;grid-template-columns:1fr;gap:7px;margin-top:11px;padding-top:10px;border-top:1px solid #c2a35b44;text-align:center}
+.push-controls button{min-height:38px;padding:8px 11px;border:1px solid #d2b45e;border-radius:7px;background:linear-gradient(#5a4526,#2d2318);color:#fff0b4;font:900 .62rem Georgia,serif;letter-spacing:.07em;text-shadow:0 1px 2px #000;box-shadow:inset 0 1px #fff3,0 3px 7px #0008;cursor:pointer}
+.push-controls button.enabled{border-color:#70d5a5;background:linear-gradient(#286149,#13372b);color:#d9ffeb}
+.push-controls button:disabled{cursor:default;filter:grayscale(1);opacity:.6}
+.push-controls #installAppButton{border-color:#75cdbb;background:linear-gradient(#315e54,#183c34);color:#e4fff8}
+.push-controls small{color:#9ebdb0;font-size:.6rem;line-height:1.35}
 @media(max-width:600px){.open-challenges{margin-top:13px;padding:10px}.open-challenge{gap:7px}.open-challenge button{padding-inline:9px}.open-challenges-list{max-height:160px}}

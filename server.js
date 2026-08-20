@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { WebSocketServer, WebSocket } = require('ws');
+let webPush = null;
+try { webPush = require('web-push'); } catch {}
 
 const PORT = Number(process.env.PORT) || 3000;
 const ROOT = __dirname;
@@ -14,9 +16,14 @@ const DATA_DIR = path.join(ROOT, 'data');
 const LEADERBOARD_FILE = process.env.LEADERBOARD_FILE || path.join(DATA_DIR, 'leaderboard.json');
 const SUPABASE_URL = String(process.env.SUPABASE_URL || '').replace(/\/$/, '');
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || '';
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
+const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'https://duel-urgensses.onrender.com/';
 const persistenceTimers = new Map();
 const persistenceChains = new Map();
 const normalizeCharacter = name => name === 'Adéla' ? 'Adela' : name;
+const pushEnabled = () => Boolean(webPush && SUPABASE_URL && SUPABASE_KEY && VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY);
+if(pushEnabled())webPush.setVapidDetails(VAPID_SUBJECT,VAPID_PUBLIC_KEY,VAPID_PRIVATE_KEY);
 
 const mime = { '.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.ico':'image/x-icon','.json':'application/json; charset=utf-8','.webmanifest':'application/manifest+json; charset=utf-8' };
 const readLocalResults = () => { try { return JSON.parse(fs.readFileSync(LEADERBOARD_FILE, 'utf8')); } catch { return []; } };
@@ -30,6 +37,31 @@ async function saveResults(rows){
   writeLocalResults([...readLocalResults(),...rows]);
 }
 const persistenceEnabled = () => Boolean(SUPABASE_URL && SUPABASE_KEY);
+const supabaseHeaders = extra => ({apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,...extra});
+const validSubscription = value => value && typeof value.endpoint==='string' && value.endpoint.startsWith('https://') && value.endpoint.length<2048 && value.keys && typeof value.keys.p256dh==='string' && typeof value.keys.auth==='string';
+async function readJsonBody(req,limit=12000){
+  let body='';for await(const chunk of req){body+=chunk;if(body.length>limit)throw new Error('Requête trop volumineuse');}
+  return JSON.parse(body||'{}');
+}
+async function savePushSubscription(subscription,userAgent=''){
+  if(!pushEnabled()||!validSubscription(subscription))return false;
+  const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_push_subscriptions?on_conflict=endpoint`,{method:'POST',headers:supabaseHeaders({'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify({endpoint:subscription.endpoint,subscription,user_agent:String(userAgent).slice(0,500),updated_at:new Date().toISOString()}),signal:AbortSignal.timeout(5000)});
+  if(!response.ok)throw new Error(`Abonnement Supabase refusé (${response.status})`);return true;
+}
+async function deletePushSubscription(endpoint){
+  if(!persistenceEnabled()||typeof endpoint!=='string')return;
+  await fetch(`${SUPABASE_URL}/rest/v1/duel_push_subscriptions?endpoint=eq.${encodeURIComponent(endpoint)}`,{method:'DELETE',headers:supabaseHeaders({Prefer:'return=minimal'}),signal:AbortSignal.timeout(5000)});
+}
+async function notifyOpenChallenge(room,excludedEndpoint=''){
+  if(!pushEnabled())return;
+  const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_push_subscriptions?select=endpoint,subscription`,{headers:supabaseHeaders(),signal:AbortSignal.timeout(5000)});
+  if(!response.ok)throw new Error(`Lecture des abonnements impossible (${response.status})`);
+  const subscriptions=await response.json(),host=members(room).find(member=>member.id===room.hostId)?.name||'Un joueur';
+  const payload=JSON.stringify({title:'⚔️ Nouveau défi Duel Urgensses',body:`${host} cherche des adversaires · ${room.players.length}/${room.maxPlayers} joueurs · ${room.totalRounds} manches`,url:`/?join=${room.code}`,tag:`duel-${room.code}`});
+  await Promise.allSettled(subscriptions.filter(row=>row.endpoint!==excludedEndpoint).map(async row=>{
+    try{await webPush.sendNotification(row.subscription,payload,{TTL:900,urgency:'high'});}catch(error){if(error.statusCode===404||error.statusCode===410)await deletePushSubscription(row.endpoint);else console.error('Notification Web Push impossible :',error.statusCode||error.message);}
+  }));
+}
 const roomSnapshot = room => ({
   code:room.code,status:room.status,hostId:room.hostId,totalRounds:room.totalRounds,maxPlayers:room.maxPlayers,
   round:room.round,trick:room.trick,phase:room.phase,leader:room.leader,turn:room.turn,
@@ -72,6 +104,9 @@ async function restoreRooms(){
 const aggregateResults = rows => [...rows.reduce((map,row)=>{const character=normalizeCharacter(row.character),value=map.get(character)||{character,games:0,wins:0,losses:0,draws:0,points:0,tricks:0};value.games++;value[row.result==='win'?'wins':row.result==='draw'?'draws':'losses']++;value.points+=Number(row.score)||0;value.tricks+=Number(row.tricks)||0;map.set(character,value);return map;},new Map()).values()].map(r=>({...r,winRate:Math.round(r.wins/r.games*100)})).sort((a,b)=>b.points-a.points||b.wins-a.wins||b.winRate-a.winRate||a.character.localeCompare(b.character,'fr'));
 const server = http.createServer(async (req, res) => {
   const urlPath = decodeURIComponent((req.url || '/').split('?')[0]);
+  if(urlPath==='/api/push/public-key') { res.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});return res.end(JSON.stringify({enabled:pushEnabled(),publicKey:pushEnabled()?VAPID_PUBLIC_KEY:''})); }
+  if(urlPath==='/api/push/subscribe'&&req.method==='POST') { try{const body=await readJsonBody(req),saved=await savePushSubscription(body.subscription,req.headers['user-agent']);res.writeHead(saved?204:503);return res.end();}catch(error){console.error(error);res.writeHead(400);return res.end('Abonnement invalide');} }
+  if(urlPath==='/api/push/subscribe'&&req.method==='DELETE') { try{const body=await readJsonBody(req);await deletePushSubscription(body.endpoint);res.writeHead(204);return res.end();}catch(error){console.error(error);res.writeHead(400);return res.end('Désabonnement invalide');} }
   if(urlPath==='/api/leaderboard') { try { const rows=aggregateResults(await readResults());res.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});return res.end(JSON.stringify(rows)); } catch(error){console.error(error);res.writeHead(500);return res.end('Classement indisponible');} }
   const relative = urlPath === '/' ? 'index.html' : urlPath.replace(/^\/+/, '');
   const file = path.resolve(ROOT, relative);
@@ -196,7 +231,7 @@ function handle(ws, msg){
     const room={code:roomCode,status:'lobby',hostId:playerId,totalRounds:Math.max(1,Math.min(8,Number(msg.rounds)||8)),maxPlayers:Math.max(2,Math.min(6,Number(msg.maxPlayers)||6)),round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[],resultRecorded:false};
     if(msg.organizer)room.spectators.push({id:playerId,name:'Organisateur',ws});
     else {const character=normalizeCharacter(String(msg.character||'Personnage').slice(0,24));room.players.push({id:playerId,name:character,character,score:0,bid:null,tricks:0,dice:[],ws});}
-    rooms.set(roomCode,room);ws.room=roomCode;ws.playerId=playerId;send(ws,'session',{code:roomCode,playerId});broadcast(room);return;
+    rooms.set(roomCode,room);ws.room=roomCode;ws.playerId=playerId;send(ws,'session',{code:roomCode,playerId});broadcast(room);notifyOpenChallenge(room,String(msg.pushEndpoint||'')).catch(error=>console.error('Alerte de défi impossible :',error.message));return;
   }
   if(msg.type==='join'){
     const room=rooms.get(String(msg.code||'').toUpperCase());if(!room)return fail(ws,'Salle introuvable.');
