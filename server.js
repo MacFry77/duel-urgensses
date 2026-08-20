@@ -21,6 +21,7 @@ const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
 const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'https://duel-urgensses.onrender.com/';
 const persistenceTimers = new Map();
 const persistenceChains = new Map();
+let atomicPersistenceUnavailable=false;
 const normalizeCharacter = name => name === 'Adéla' ? 'Adela' : name;
 let pushConfigurationValid=false;
 if(webPush&&SUPABASE_URL&&SUPABASE_KEY&&VAPID_PUBLIC_KEY&&VAPID_PRIVATE_KEY){try{webPush.setVapidDetails(VAPID_SUBJECT,VAPID_PUBLIC_KEY.trim(),VAPID_PRIVATE_KEY.trim());pushConfigurationValid=true}catch(error){console.error('Notifications désactivées : clés VAPID invalides.',error.message)}}
@@ -65,32 +66,40 @@ async function notifyOpenChallenge(room,excludedEndpoint=''){
 }
 const roomSnapshot = room => ({
   code:room.code,status:room.status,hostId:room.hostId,totalRounds:room.totalRounds,maxPlayers:room.maxPlayers,
+  revision:Number(room.revision)||0,
   round:room.round,trick:room.trick,phase:room.phase,leader:room.leader,turn:room.turn,
   leadColor:room.leadColor,played:room.played,message:room.message||'',chat:room.chat,
   resultRecorded:room.resultRecorded,
   players:room.players.map(({ws,...player})=>player),
   spectators:room.spectators.map(({ws,...spectator})=>spectator)
 });
-async function persistRoom(room){
+async function persistRoom(snapshot){
   if(!persistenceEnabled())return;
-  const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_active_games?on_conflict=code`,{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({code:room.code,state:roomSnapshot(room),updated_at:new Date().toISOString()})});
+  if(!atomicPersistenceUnavailable){
+    const atomic=await fetch(`${SUPABASE_URL}/rest/v1/rpc/duel_save_active_game`,{method:'POST',headers:supabaseHeaders({'Content-Type':'application/json'}),body:JSON.stringify({p_code:snapshot.code,p_state:snapshot,p_revision:snapshot.revision}),signal:AbortSignal.timeout(5000)});
+    if(atomic.ok)return;
+    if(atomic.status!==404&&atomic.status!==400){console.error('Sauvegarde atomique impossible :',atomic.status,await atomic.text());return}
+    atomicPersistenceUnavailable=true;console.warn('Fonction Supabase duel_save_active_game absente : sauvegarde de compatibilité utilisée.');
+  }
+  const current=await fetch(`${SUPABASE_URL}/rest/v1/duel_active_games?code=eq.${encodeURIComponent(snapshot.code)}&select=state`,{headers:supabaseHeaders(),signal:AbortSignal.timeout(5000)});
+  if(current.ok){const rows=await current.json(),revision=Number(rows[0]?.state?.revision)||0;if(revision>snapshot.revision)return}
+  const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_active_games?on_conflict=code`,{method:'POST',headers:supabaseHeaders({'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify({code:snapshot.code,state:snapshot,updated_at:new Date().toISOString()}),signal:AbortSignal.timeout(5000)});
   if(!response.ok)console.error('Sauvegarde de la partie impossible :',response.status,await response.text());
 }
 function queuePersist(room){
   if(!persistenceEnabled())return;
-  clearTimeout(persistenceTimers.get(room.code));
+  const snapshot=roomSnapshot(room);clearTimeout(persistenceTimers.get(room.code));
   persistenceTimers.set(room.code,setTimeout(()=>{
-    persistenceTimers.delete(room.code);
-    const previous=persistenceChains.get(room.code)||Promise.resolve();
-    const next=previous.catch(()=>{}).then(()=>persistRoom(room));
+    persistenceTimers.delete(room.code);const previous=persistenceChains.get(room.code)||Promise.resolve();
+    const next=previous.catch(()=>{}).then(()=>persistRoom(snapshot)).catch(error=>console.error('Sauvegarde Supabase différée :',error.message));
     persistenceChains.set(room.code,next);next.finally(()=>{if(persistenceChains.get(room.code)===next)persistenceChains.delete(room.code)});
-  },100));
+  },25));
 }
 function deletePersistedRoom(roomCode){
   if(!persistenceEnabled())return;
   clearTimeout(persistenceTimers.get(roomCode));persistenceTimers.delete(roomCode);
   const previous=persistenceChains.get(roomCode)||Promise.resolve();
-  const next=previous.catch(()=>{}).then(async()=>{const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_active_games?code=eq.${encodeURIComponent(roomCode)}`,{method:'DELETE',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,Prefer:'return=minimal'}});if(!response.ok)console.error('Suppression de la sauvegarde impossible :',response.status)});
+  const next=previous.catch(()=>{}).then(async()=>{const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_active_games?code=eq.${encodeURIComponent(roomCode)}`,{method:'DELETE',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,Prefer:'return=minimal'},signal:AbortSignal.timeout(5000)});if(!response.ok)console.error('Suppression de la sauvegarde impossible :',response.status)}).catch(error=>console.error('Suppression Supabase différée :',error.message));
   persistenceChains.set(roomCode,next);next.finally(()=>{if(persistenceChains.get(roomCode)===next)persistenceChains.delete(roomCode)});
 }
 async function restoreRooms(){
@@ -99,7 +108,7 @@ async function restoreRooms(){
   const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_active_games?select=code,state&updated_at=gte.${encodeURIComponent(since)}`,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`},signal:AbortSignal.timeout(5000)});
   if(!response.ok){console.error('Restauration des parties impossible :',response.status);return;}
   const rows=await response.json();
-  for(const row of rows){const saved=row.state;if(!saved||saved.code!==row.code||!Array.isArray(saved.players)||!Array.isArray(saved.spectators))continue;saved.maxPlayers=Math.max(2,Math.min(6,Number(saved.maxPlayers)||6));saved.players=saved.players.map(player=>({...player,ws:null}));saved.spectators=saved.spectators.map(spectator=>({...spectator,ws:null}));saved.chat=Array.isArray(saved.chat)?saved.chat:[];saved.played=Array.isArray(saved.played)?saved.played:[];rooms.set(saved.code,saved)}
+  for(const row of rows){const saved=row.state;if(!saved||saved.code!==row.code||!Array.isArray(saved.players)||!Array.isArray(saved.spectators))continue;saved.revision=Math.max(0,Number(saved.revision)||0);saved.maxPlayers=Math.max(2,Math.min(6,Number(saved.maxPlayers)||6));saved.players=saved.players.map(player=>({...player,ws:null}));saved.spectators=saved.spectators.map(spectator=>({...spectator,ws:null}));saved.chat=Array.isArray(saved.chat)?saved.chat:[];saved.played=Array.isArray(saved.played)?saved.played:[];rooms.set(saved.code,saved)}
   if(rows.length)console.log(`${rooms.size} partie(s) restaurée(s) depuis Supabase.`);
 }
 const aggregateResults = rows => [...rows.reduce((map,row)=>{const character=normalizeCharacter(row.character),value=map.get(character)||{character,games:0,wins:0,losses:0,draws:0,points:0,tricks:0};value.games++;value[row.result==='win'?'wins':row.result==='draw'?'draws':'losses']++;value.points+=Number(row.score)||0;value.tricks+=Number(row.tricks)||0;map.set(character,value);return map;},new Map()).values()].map(r=>({...r,winRate:Math.round(r.wins/r.games*100)})).sort((a,b)=>b.points-a.points||b.wins-a.wins||b.winRate-a.winRate||a.character.localeCompare(b.character,'fr'));
@@ -170,7 +179,7 @@ function transferHost(room){
   if(successor)room.hostId=successor.id;
   return successor;
 }
-const broadcast = room => {members(room).forEach(p => p.ws && send(p.ws,'state',{state:publicState(room,p.id)}));queuePersist(room);broadcastLobbies()};
+const broadcast = room => {room.revision=(Number(room.revision)||0)+1;members(room).forEach(p => p.ws && send(p.ws,'state',{state:publicState(room,p.id)}));queuePersist(room);broadcastLobbies()};
 const fail = (ws, message) => send(ws,'error',{message});
 const currentPlayer = room => room.players[room.turn];
 
@@ -230,7 +239,7 @@ function nextStep(room){
 function handle(ws, msg){
   if(msg.type==='create'){
     const roomCode=code(), playerId=id();
-    const room={code:roomCode,status:'lobby',hostId:playerId,totalRounds:Math.max(1,Math.min(8,Number(msg.rounds)||8)),maxPlayers:Math.max(2,Math.min(6,Number(msg.maxPlayers)||6)),round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[],resultRecorded:false};
+    const room={code:roomCode,status:'lobby',hostId:playerId,revision:0,totalRounds:Math.max(1,Math.min(8,Number(msg.rounds)||8)),maxPlayers:Math.max(2,Math.min(6,Number(msg.maxPlayers)||6)),round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[],resultRecorded:false};
     if(msg.organizer)room.spectators.push({id:playerId,name:cleanDisplayName(msg.name)||'Organisateur',ws});
     else {const character=normalizeCharacter(String(msg.character||'Personnage').slice(0,24));room.players.push({id:playerId,name:character,character,score:0,bid:null,tricks:0,dice:[],ws});}
     rooms.set(roomCode,room);ws.room=roomCode;ws.playerId=playerId;send(ws,'session',{code:roomCode,playerId});broadcast(room);notifyOpenChallenge(room,String(msg.pushEndpoint||'')).catch(error=>console.error('Alerte de défi impossible :',error.message));return;
@@ -285,7 +294,7 @@ function handle(ws, msg){
       if(successor)broadcast(room);
       else{members(room).forEach(m=>m.ws&&send(m.ws,'closed',{message:'La salle a été fermée par son créateur.'}));rooms.delete(room.code);deletePersistedRoom(room.code);broadcastLobbies();}
     }
-    else{room.players=room.players.filter(p=>p.id!==actor.id);room.spectators=room.spectators.filter(p=>p.id!==actor.id);if(player&&room.status==='playing'){room.status='lobby';room.phase='lobby';room.round=1;room.trick=1;room.turn=0;room.leader=0;room.leadColor=null;room.played=[];room.players.forEach(p=>{p.score=0;p.bid=null;p.tricks=0;p.dice=[];});}broadcast(room);}
+    else{if(player)removePlayer(room,actor.id);else room.spectators=room.spectators.filter(p=>p.id!==actor.id);broadcast(room);}
     ws.room=null;ws.playerId=null;send(ws,'left');return;
   }
   if(msg.type==='start'){
@@ -296,13 +305,14 @@ function handle(ws, msg){
   }
   if(msg.type==='reset'){
     if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut recommencer la partie.");
+    if(room.phase!=='over')return fail(ws,'Le retour au salon est disponible uniquement lorsque la partie est terminée.');
     room.status='lobby';room.phase='lobby';room.round=1;room.trick=1;room.turn=0;room.leader=0;room.leadColor=null;room.played=[];room.resultRecorded=false;
     room.players.forEach(p=>{p.score=0;p.bid=null;p.tricks=0;p.dice=[];});broadcast(room);return;
   }
   if(msg.type==='newRoom'){
     if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut créer une nouvelle salle.");
     const organizer=!!spectator,roomCode=code(),playerId=id();actor.ws=null;broadcast(room);
-    const fresh={code:roomCode,status:'lobby',hostId:playerId,totalRounds:room.totalRounds,maxPlayers:room.maxPlayers,round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[],resultRecorded:false};
+    const fresh={code:roomCode,status:'lobby',hostId:playerId,revision:0,totalRounds:room.totalRounds,maxPlayers:room.maxPlayers,round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[],resultRecorded:false};
     if(organizer)fresh.spectators.push({id:playerId,name:'Organisateur',ws});
     else fresh.players.push({id:playerId,name:actor.character,character:actor.character,score:0,bid:null,tricks:0,dice:[],ws});
     rooms.set(roomCode,fresh);ws.room=roomCode;ws.playerId=playerId;send(ws,'session',{code:roomCode,playerId});broadcast(fresh);return;
@@ -332,7 +342,6 @@ wss.on('connection',ws=>{ws.isAlive=true;send(ws,'lobbies',{lobbies:lobbySummari
 setInterval(()=>{wss.clients.forEach(ws=>{if(!ws.isAlive)return ws.terminate();ws.isAlive=false;ws.ping();});},25000).unref();
 setInterval(()=>{for(const [roomCode,room] of rooms)if(members(room).every(p=>!p.ws)){rooms.delete(roomCode);deletePersistedRoom(roomCode)}},30*60*1000).unref();
 if(require.main===module){
-  server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`));
-  restoreRooms().catch(error=>console.error('Restauration Supabase différée :',error.message));
+  restoreRooms().catch(error=>console.error('Restauration Supabase impossible :',error.message)).finally(()=>server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`)));
 }
 module.exports={resolve,publicState,aggregateResults,removePlayer,transferHost,lobbySummaries};

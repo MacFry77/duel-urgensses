@@ -27,6 +27,33 @@ create index if not exists duel_active_games_updated_at_idx
 
 alter table public.duel_active_games enable row level security;
 
+-- Écriture atomique d'un état de partie. Une ancienne instance Render ne peut
+-- plus remplacer une sauvegarde possédant une révision plus récente.
+create or replace function public.duel_save_active_game(
+  p_code text,
+  p_state jsonb,
+  p_revision bigint
+) returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  saved boolean;
+begin
+  insert into public.duel_active_games(code,state,updated_at)
+  values(p_code,p_state,now())
+  on conflict(code) do update
+    set state=excluded.state,updated_at=excluded.updated_at
+    where coalesce((public.duel_active_games.state->>'revision')::bigint,0) < p_revision
+  returning true into saved;
+  return coalesce(saved,false);
+end;
+$$;
+
+revoke all on function public.duel_save_active_game(text,jsonb,bigint) from public, anon, authenticated;
+grant execute on function public.duel_save_active_game(text,jsonb,bigint) to service_role;
+
 -- Abonnements Web Push privés. L'adresse d'abonnement et ses clés ne doivent
 -- jamais être exposées au navigateur d'un autre joueur : seul Render y accède
 -- avec la clé service_role.
