@@ -15,7 +15,7 @@
   <link rel="manifest" href="/site.webmanifest?v=3">
   <link rel="stylesheet" href="styles.css?v=5">
   <link rel="stylesheet" href="theme.css?v=5">
-  <link rel="stylesheet" href="multiplayer.css?v=47">
+  <link rel="stylesheet" href="multiplayer.css?v=48">
 </head>
 <body>
   <div id="connectionBanner" class="connection-banner hidden">RECONNEXION AU SERVEUR…</div>
@@ -71,6 +71,7 @@
           <button id="organizerButton" class="spectator-button"><span>CRÉER COMME ORGANISATEUR / SPECTATEUR</span></button>
           <span>OU</span>
           <div class="join-row"><input id="roomCodeInput" maxlength="5" placeholder="CODE" aria-label="Code de la salle"><button id="joinButton" class="outline">REJOINDRE</button></div>
+          <label class="spectator-name-label">NOM DU SPECTATEUR <small>(FACULTATIF)</small><input id="spectatorNameInput" maxlength="24" autocomplete="nickname" placeholder="Votre nom"></label>
           <button id="joinSpectatorButton" class="spectator-join-button">REJOINDRE COMME SPECTATEUR</button>
         </div>
         <section class="open-challenges" aria-labelledby="openChallengesTitle">
@@ -145,7 +146,7 @@
           <div id="playedDice" class="played"></div>
           <div id="bidControls" class="bid-controls"></div>
           <button id="nextButton" class="primary hidden">PLI SUIVANT</button>
-          <button id="resetButton" class="primary hidden">RECOMMENCER LA PARTIE</button>
+          <button id="resetButton" class="primary hidden">RETOURNER DANS LE SALON</button>
           <button id="newRoomButton" class="primary hidden">NOUVELLE SALLE · NOUVEAUX JOUEURS</button>
         </div>
         <div id="playersGrid" class="players-grid"></div>
@@ -188,6 +189,6 @@
     <p class="gallery-intro">Découvrez tous les personnages disponibles avant de choisir votre champion.</p>
     <div id="galleryGrid" class="gallery-grid"></div>
   </dialog>
-  <script src="game.js?v=27"></script>
+  <script src="game.js?v=28"></script>
 </body>
 </html>

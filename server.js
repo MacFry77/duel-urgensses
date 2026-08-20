@@ -200,6 +200,7 @@ function resolve(room) {
   return nums.reduce((a,b)=>b.die.face>=a.die.face?b:a).player;
 }
 function scoreRound(room){room.players.forEach(p=>{if(p.bid===p.tricks)p.score+=p.bid===0?room.round*10:p.tricks*20;});}
+function cleanDisplayName(value){return String(value||'').replace(/[\u0000-\u001f\u007f]/g,'').trim().replace(/\s+/g,' ').slice(0,24)}
 function removePlayer(room,targetId){
   const removedIndex=room.players.findIndex(p=>p.id===targetId);if(removedIndex<0)return null;
   const [removed]=room.players.splice(removedIndex,1);removed.ws&&send(removed.ws,'kicked',{message:'Vous avez été exclu de cette salle par l’hôte.'});
@@ -230,7 +231,7 @@ function handle(ws, msg){
   if(msg.type==='create'){
     const roomCode=code(), playerId=id();
     const room={code:roomCode,status:'lobby',hostId:playerId,totalRounds:Math.max(1,Math.min(8,Number(msg.rounds)||8)),maxPlayers:Math.max(2,Math.min(6,Number(msg.maxPlayers)||6)),round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[],resultRecorded:false};
-    if(msg.organizer)room.spectators.push({id:playerId,name:'Organisateur',ws});
+    if(msg.organizer)room.spectators.push({id:playerId,name:cleanDisplayName(msg.name)||'Organisateur',ws});
     else {const character=normalizeCharacter(String(msg.character||'Personnage').slice(0,24));room.players.push({id:playerId,name:character,character,score:0,bid:null,tricks:0,dice:[],ws});}
     rooms.set(roomCode,room);ws.room=roomCode;ws.playerId=playerId;send(ws,'session',{code:roomCode,playerId});broadcast(room);notifyOpenChallenge(room,String(msg.pushEndpoint||'')).catch(error=>console.error('Alerte de défi impossible :',error.message));return;
   }
@@ -243,7 +244,7 @@ function handle(ws, msg){
       if(msg.spectator){
         if(room.spectators.length>=20)return fail(ws,'Le nombre maximal de spectateurs est atteint.');
         const number=room.spectators.filter(s=>s.name.startsWith('Spectateur')).length+1;
-        player={id:id(),name:number===1?'Spectateur':`Spectateur ${number}`,ws};room.spectators.push(player);
+        player={id:id(),name:cleanDisplayName(msg.name)||(number===1?'Spectateur':`Spectateur ${number}`),ws};room.spectators.push(player);
       }else{
         const character=normalizeCharacter(String(msg.character||'').slice(0,24));
         const reclaim=character&&room.players.find(p=>p.character===character&&!p.ws);
