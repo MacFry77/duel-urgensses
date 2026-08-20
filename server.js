@@ -22,8 +22,9 @@ const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'https://duel-urgensses.onren
 const persistenceTimers = new Map();
 const persistenceChains = new Map();
 const normalizeCharacter = name => name === 'Adéla' ? 'Adela' : name;
-const pushEnabled = () => Boolean(webPush && SUPABASE_URL && SUPABASE_KEY && VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY);
-if(pushEnabled())webPush.setVapidDetails(VAPID_SUBJECT,VAPID_PUBLIC_KEY,VAPID_PRIVATE_KEY);
+let pushConfigurationValid=false;
+if(webPush&&SUPABASE_URL&&SUPABASE_KEY&&VAPID_PUBLIC_KEY&&VAPID_PRIVATE_KEY){try{webPush.setVapidDetails(VAPID_SUBJECT,VAPID_PUBLIC_KEY.trim(),VAPID_PRIVATE_KEY.trim());pushConfigurationValid=true}catch(error){console.error('Notifications désactivées : clés VAPID invalides.',error.message)}}
+const pushEnabled = () => pushConfigurationValid;
 
 const mime = { '.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.ico':'image/x-icon','.json':'application/json; charset=utf-8','.webmanifest':'application/manifest+json; charset=utf-8' };
 const readLocalResults = () => { try { return JSON.parse(fs.readFileSync(LEADERBOARD_FILE, 'utf8')); } catch { return []; } };
