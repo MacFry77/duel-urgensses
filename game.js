@@ -42,8 +42,9 @@ function joinSpectatorRoom(){const code=$('roomCodeInput').value.trim().toUpperC
 function renderOpenChallenges(){
   const list=$('openChallengesList'),counter=$('openChallengeCount');if(!list||!counter)return;
   counter.textContent=String(openLobbies.length);
-  list.innerHTML=openLobbies.length?openLobbies.map(room=>`<article class="open-challenge"><div><strong>${esc(room.host)} lance un défi</strong><small>${room.rounds} manche${room.rounds>1?'s':''} · ${room.players}/${room.maxPlayers} joueurs</small></div><button data-open-room="${esc(room.code)}">REJOINDRE</button></article>`).join(''):'<p>Aucun défi ouvert pour le moment.</p>';
+  list.innerHTML=openLobbies.length?openLobbies.map(room=>`<article class="open-challenge"><div><strong>${esc(room.host)} lance un défi</strong><small>${room.rounds} manche${room.rounds>1?'s':''} · ${room.players}/${room.maxPlayers} joueurs</small></div><div class="open-challenge-actions"><button data-open-room="${esc(room.code)}">JOUER</button><button class="observe-challenge" data-observe-room="${esc(room.code)}">OBSERVER</button></div></article>`).join(''):'<p>Aucun défi ouvert pour le moment.</p>';
   list.querySelectorAll('[data-open-room]').forEach(button=>button.onclick=()=>{$('roomCodeInput').value=button.dataset.openRoom;joinRoom()});
+  list.querySelectorAll('[data-observe-room]').forEach(button=>button.onclick=()=>{$('roomCodeInput').value=button.dataset.observeRoom;joinSpectatorRoom()});
 }
 const iosDevice=()=>/iphone|ipad|ipod/i.test(navigator.userAgent);
 const standaloneApp=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
