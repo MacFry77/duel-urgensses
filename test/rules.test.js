@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { resolve, publicState, aggregateResults, removePlayer, transferHost } = require('../server');
+const { resolve, publicState, aggregateResults, removePlayer, transferHost, lobbySummaries } = require('../server');
 
 const symbol = color => ({color, face:'symbol'});
 const flag = color => ({color, face:'flag'});
@@ -106,4 +106,15 @@ test("l'hôte n'est pas transféré au milieu d'une partie", () => {
   const room={status:'playing',hostId:'host',players:[{id:'host',ws:null},{id:'p2',ws:{}}],spectators:[]};
   assert.equal(transferHost(room),null);
   assert.equal(room.hostId,'host');
+});
+
+test('le panneau ne publie que les défis ouverts, connectés et non complets', () => {
+  const connected = {};
+  const source = new Map([
+    ['OPEN', {code:'OPEN',status:'lobby',hostId:'h',totalRounds:5,maxPlayers:4,players:[{id:'h',name:'Pascal',ws:connected}],spectators:[]}],
+    ['FULL', {code:'FULL',status:'lobby',hostId:'a',totalRounds:3,maxPlayers:2,players:[{id:'a',name:'A',ws:connected},{id:'b',name:'B',ws:connected}],spectators:[]}],
+    ['PLAY', {code:'PLAY',status:'playing',hostId:'c',totalRounds:8,maxPlayers:6,players:[{id:'c',name:'C',ws:connected}],spectators:[]}],
+    ['OFF', {code:'OFF',status:'lobby',hostId:'d',totalRounds:2,maxPlayers:6,players:[{id:'d',name:'D',ws:null}],spectators:[]}]
+  ]);
+  assert.deepEqual(lobbySummaries(source), [{code:'OPEN',host:'Pascal',players:1,maxPlayers:4,rounds:5}]);
 });

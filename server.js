@@ -121,6 +121,11 @@ const publicState = (room, viewerId) => ({
   }))
 });
 const members = room => [...room.players,...room.spectators];
+const lobbySummaries = source => [...source.values()].filter(room=>room.status==='lobby'&&members(room).some(member=>member.ws)&&room.players.length<room.maxPlayers).map(room=>{
+  const host=members(room).find(member=>member.id===room.hostId);
+  return {code:room.code,host:host?.name||'Hôte',players:room.players.length,maxPlayers:room.maxPlayers,rounds:room.totalRounds};
+});
+const broadcastLobbies = () => {const lobbies=lobbySummaries(rooms);wss.clients.forEach(client=>send(client,'lobbies',{lobbies}))};
 function transferHost(room){
   if(room.status==='playing')return null;
   const current=members(room).find(member=>member.id===room.hostId);
@@ -129,7 +134,7 @@ function transferHost(room){
   if(successor)room.hostId=successor.id;
   return successor;
 }
-const broadcast = room => {members(room).forEach(p => p.ws && send(p.ws,'state',{state:publicState(room,p.id)}));queuePersist(room)};
+const broadcast = room => {members(room).forEach(p => p.ws && send(p.ws,'state',{state:publicState(room,p.id)}));queuePersist(room);broadcastLobbies()};
 const fail = (ws, message) => send(ws,'error',{message});
 const currentPlayer = room => room.players[room.turn];
 
@@ -224,10 +229,11 @@ function handle(ws, msg){
   }
   if(msg.type==='settings'){
     if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut modifier la salle.");
-    if(room.status!=='lobby')return fail(ws,'La capacité ne peut être modifiée que dans la salle d’attente.');
+    if(room.status!=='lobby')return fail(ws,'Les réglages ne peuvent être modifiés que dans la salle d’attente.');
     const maxPlayers=Math.max(2,Math.min(6,Number(msg.maxPlayers)||room.maxPlayers));
+    const totalRounds=Math.max(1,Math.min(8,Number(msg.rounds)||room.totalRounds));
     if(maxPlayers<room.players.length)return fail(ws,`Il y a déjà ${room.players.length} joueurs dans la salle.`);
-    room.maxPlayers=maxPlayers;broadcast(room);return;
+    room.maxPlayers=maxPlayers;room.totalRounds=totalRounds;broadcast(room);return;
   }
   if(msg.type==='kick'){
     if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut exclure un joueur.");
@@ -240,7 +246,7 @@ function handle(ws, msg){
       room.players=room.players.filter(p=>p.id!==actor.id);room.spectators=room.spectators.filter(p=>p.id!==actor.id);
       const successor=transferHost(room);
       if(successor)broadcast(room);
-      else{members(room).forEach(m=>m.ws&&send(m.ws,'closed',{message:'La salle a été fermée par son créateur.'}));rooms.delete(room.code);deletePersistedRoom(room.code);}
+      else{members(room).forEach(m=>m.ws&&send(m.ws,'closed',{message:'La salle a été fermée par son créateur.'}));rooms.delete(room.code);deletePersistedRoom(room.code);broadcastLobbies();}
     }
     else{room.players=room.players.filter(p=>p.id!==actor.id);room.spectators=room.spectators.filter(p=>p.id!==actor.id);if(player&&room.status==='playing'){room.status='lobby';room.phase='lobby';room.round=1;room.trick=1;room.turn=0;room.leader=0;room.leadColor=null;room.played=[];room.players.forEach(p=>{p.score=0;p.bid=null;p.tricks=0;p.dice=[];});}broadcast(room);}
     ws.room=null;ws.playerId=null;send(ws,'left');return;
@@ -285,8 +291,8 @@ function handle(ws, msg){
   if(msg.type==='next'&&room.phase==='result'){nextStep(room);broadcast(room);return;}
   fail(ws,'Action impossible.');
 }
-wss.on('connection',ws=>{ws.isAlive=true;ws.on('pong',()=>ws.isAlive=true);ws.on('message',raw=>{try{handle(ws,JSON.parse(raw));}catch(e){console.error(e);fail(ws,'Action invalide.');}});ws.on('close',()=>{const room=rooms.get(ws.room),p=room&&members(room).find(x=>x.id===ws.playerId);if(p&&p.ws===ws){p.ws=null;transferHost(room);broadcast(room);}});});
+wss.on('connection',ws=>{ws.isAlive=true;send(ws,'lobbies',{lobbies:lobbySummaries(rooms)});ws.on('pong',()=>ws.isAlive=true);ws.on('message',raw=>{try{handle(ws,JSON.parse(raw));}catch(e){console.error(e);fail(ws,'Action invalide.');}});ws.on('close',()=>{const room=rooms.get(ws.room),p=room&&members(room).find(x=>x.id===ws.playerId);if(p&&p.ws===ws){p.ws=null;transferHost(room);broadcast(room);}else broadcastLobbies();});});
 setInterval(()=>{wss.clients.forEach(ws=>{if(!ws.isAlive)return ws.terminate();ws.isAlive=false;ws.ping();});},25000).unref();
 setInterval(()=>{for(const [roomCode,room] of rooms)if(members(room).every(p=>!p.ws)){rooms.delete(roomCode);deletePersistedRoom(roomCode)}},30*60*1000).unref();
 if(require.main===module)restoreRooms().catch(console.error).finally(()=>server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`)));
-module.exports={resolve,publicState,aggregateResults,removePlayer,transferHost};
+module.exports={resolve,publicState,aggregateResults,removePlayer,transferHost,lobbySummaries};
