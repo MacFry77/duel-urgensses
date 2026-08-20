@@ -417,7 +417,7 @@
     box-shadow:0 18px 34px #0009,inset 0 0 0 2px #d6bc72,inset 0 0 35px #8e713844!important;
   }
   .arena.multiplayer-arena>.players-grid>article.player-card.active{
-    box-shadow:0 18px 34px #0009,0 0 28px #ffb743aa,inset 0 0 0 2px #f1d38c,inset 0 0 35px #b77b2844!important;
+    box-shadow:0 18px 34px #0009,0 0 12px #ffb74344,inset 0 0 0 2px #f1d38c,inset 0 0 30px #b77b2838!important;
   }
 
   /* À partir de trois joueurs, la table devient une arène : le parchemin
@@ -478,19 +478,20 @@
     mask-image:linear-gradient(to bottom,#000 0 76%,#000c 86%,transparent 100%);
   }
   .arena.multiplayer-arena.radial-arena .avatar-aura{
-    left:-18%!important;
-    right:-18%!important;
-    top:-18%!important;
-    bottom:-12%!important;
-    background:radial-gradient(ellipse at 50% 55%,#fff0a05c 0 18%,#ffbd3a2d 38%,#ff9d2414 55%,transparent 72%)!important;
-    filter:blur(10px)!important;
+    left:-26%!important;
+    right:-26%!important;
+    top:-24%!important;
+    bottom:-20%!important;
+    border-radius:50%!important;
+    background:radial-gradient(ellipse at 50% 58%,#fff0a046 0 14%,#ffbd3a24 32%,#ff9d240c 52%,transparent 76%)!important;
+    filter:blur(14px)!important;
   }
   .arena.multiplayer-arena.radial-arena .dice-rack{min-height:58px!important;gap:7px!important}
   .arena.multiplayer-arena.radial-arena .die{width:44px!important;height:44px!important}
   .arena.multiplayer-arena.radial-arena .turn-indicator{top:-42px!important}
 
   /* Trois joueurs : un sommet et deux adversaires à la base de l'ellipse. */
-  .radial-arena[data-player-count="3"]>.table{top:63%!important;width:clamp(350px,35%,410px)!important}
+  .radial-arena[data-player-count="3"]>.table{top:68%!important;width:clamp(350px,35%,410px)!important}
   .radial-arena[data-player-count="3"]>.players-grid>article:nth-child(1){left:50%;top:148px;transform:translateX(-50%)}
   .radial-arena[data-player-count="3"]>.players-grid>article:nth-child(2){left:28px;bottom:30px}
   .radial-arena[data-player-count="3"]>.players-grid>article:nth-child(3){right:28px;bottom:30px}

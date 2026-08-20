@@ -25,6 +25,11 @@ test('un drapeau blanc Urgentiste vaut zéro face à un symbole Chirurgien', () 
   assert.equal(resolve(played([flag('brown'), symbol('green')])), 1);
 });
 
+test('à valeur numérique identique, le dernier dé joué gagne', () => {
+  const die = color => ({color, face:4});
+  assert.equal(resolve(played([die('red'), die('red'), die('red')])), 2);
+});
+
 test('les paris adverses restent secrets puis sont révélés ensemble', () => {
   const room = {
     code:'ABCDE',status:'playing',hostId:'p1',totalRounds:3,round:1,trick:1,

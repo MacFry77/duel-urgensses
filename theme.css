@@ -224,8 +224,8 @@ dialog,
 }
 
 @keyframes active-card-pulse {
-  0%, 100% { box-shadow: 0 5px 0 #d29b3d, 0 10px 0 #10231b, 0 20px 32px #0009, 0 0 22px #ffb74399, inset 0 0 0 2px #f1d38c, inset 0 0 35px #b77b2844; }
-  50% { box-shadow: 0 5px 0 #f5c65b, 0 10px 0 #10231b, 0 20px 32px #0009, 0 0 44px #ffd55ddd, inset 0 0 0 3px #ffe897, inset 0 0 48px #ffb52f55; }
+  0%, 100% { box-shadow: 0 5px 0 #d29b3d, 0 10px 0 #10231b, 0 20px 32px #0009, 0 0 10px #ffb74338, inset 0 0 0 2px #f1d38c, inset 0 0 28px #b77b2835; }
+  50% { box-shadow: 0 5px 0 #edbd55, 0 10px 0 #10231b, 0 20px 32px #0009, 0 0 16px #ffd55d55, inset 0 0 0 2px #ffe897, inset 0 0 34px #ffb52f40; }
 }
 
 @keyframes active-aura {
