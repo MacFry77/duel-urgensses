@@ -121,6 +121,14 @@ const publicState = (room, viewerId) => ({
   }))
 });
 const members = room => [...room.players,...room.spectators];
+function transferHost(room){
+  if(room.status==='playing')return null;
+  const current=members(room).find(member=>member.id===room.hostId);
+  if(current?.ws)return current;
+  const successor=room.players.find(player=>player.ws)||room.spectators.find(spectator=>spectator.ws)||null;
+  if(successor)room.hostId=successor.id;
+  return successor;
+}
 const broadcast = room => {members(room).forEach(p => p.ws && send(p.ws,'state',{state:publicState(room,p.id)}));queuePersist(room)};
 const fail = (ws, message) => send(ws,'error',{message});
 const currentPlayer = room => room.players[room.turn];
@@ -228,7 +236,12 @@ function handle(ws, msg){
     broadcast(room);return;
   }
   if(msg.type==='leave'){
-    if(actor.id===room.hostId){members(room).filter(m=>m.id!==actor.id).forEach(m=>m.ws&&send(m.ws,'closed',{message:'La salle a été fermée par son créateur.'}));rooms.delete(room.code);deletePersistedRoom(room.code);}
+    if(actor.id===room.hostId){
+      room.players=room.players.filter(p=>p.id!==actor.id);room.spectators=room.spectators.filter(p=>p.id!==actor.id);
+      const successor=transferHost(room);
+      if(successor)broadcast(room);
+      else{members(room).forEach(m=>m.ws&&send(m.ws,'closed',{message:'La salle a été fermée par son créateur.'}));rooms.delete(room.code);deletePersistedRoom(room.code);}
+    }
     else{room.players=room.players.filter(p=>p.id!==actor.id);room.spectators=room.spectators.filter(p=>p.id!==actor.id);if(player&&room.status==='playing'){room.status='lobby';room.phase='lobby';room.round=1;room.trick=1;room.turn=0;room.leader=0;room.leadColor=null;room.played=[];room.players.forEach(p=>{p.score=0;p.bid=null;p.tricks=0;p.dice=[];});}broadcast(room);}
     ws.room=null;ws.playerId=null;send(ws,'left');return;
   }
@@ -272,8 +285,8 @@ function handle(ws, msg){
   if(msg.type==='next'&&room.phase==='result'){nextStep(room);broadcast(room);return;}
   fail(ws,'Action impossible.');
 }
-wss.on('connection',ws=>{ws.isAlive=true;ws.on('pong',()=>ws.isAlive=true);ws.on('message',raw=>{try{handle(ws,JSON.parse(raw));}catch(e){console.error(e);fail(ws,'Action invalide.');}});ws.on('close',()=>{const room=rooms.get(ws.room),p=room&&members(room).find(x=>x.id===ws.playerId);if(p&&p.ws===ws){p.ws=null;broadcast(room);}});});
+wss.on('connection',ws=>{ws.isAlive=true;ws.on('pong',()=>ws.isAlive=true);ws.on('message',raw=>{try{handle(ws,JSON.parse(raw));}catch(e){console.error(e);fail(ws,'Action invalide.');}});ws.on('close',()=>{const room=rooms.get(ws.room),p=room&&members(room).find(x=>x.id===ws.playerId);if(p&&p.ws===ws){p.ws=null;transferHost(room);broadcast(room);}});});
 setInterval(()=>{wss.clients.forEach(ws=>{if(!ws.isAlive)return ws.terminate();ws.isAlive=false;ws.ping();});},25000).unref();
 setInterval(()=>{for(const [roomCode,room] of rooms)if(members(room).every(p=>!p.ws)){rooms.delete(roomCode);deletePersistedRoom(roomCode)}},30*60*1000).unref();
 if(require.main===module)restoreRooms().catch(console.error).finally(()=>server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`)));
-module.exports={resolve,publicState,aggregateResults,removePlayer};
+module.exports={resolve,publicState,aggregateResults,removePlayer,transferHost};

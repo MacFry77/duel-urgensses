@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { resolve, publicState, aggregateResults, removePlayer } = require('../server');
+const { resolve, publicState, aggregateResults, removePlayer, transferHost } = require('../server');
 
 const symbol = color => ({color, face:'symbol'});
 const flag = color => ({color, face:'flag'});
@@ -86,4 +86,24 @@ test('une partie repasse en attente si une exclusion laisse un seul joueur', () 
   assert.equal(room.status, 'lobby');
   assert.equal(room.phase, 'lobby');
   assert.equal(room.players[0].score, 0);
+});
+
+test("la déconnexion de l'hôte en attente transmet le contrôle au premier joueur connecté", () => {
+  const room={status:'lobby',hostId:'host',players:[
+    {id:'host',ws:null},{id:'p2',ws:{}},{id:'p3',ws:{}}
+  ],spectators:[{id:'s1',ws:{}}]};
+  assert.equal(transferHost(room).id,'p2');
+  assert.equal(room.hostId,'p2');
+});
+
+test("un spectateur connecté devient hôte si aucun joueur n'est disponible", () => {
+  const room={status:'finished',hostId:'host',players:[{id:'host',ws:null},{id:'p2',ws:null}],spectators:[{id:'s1',ws:{}}]};
+  assert.equal(transferHost(room).id,'s1');
+  assert.equal(room.hostId,'s1');
+});
+
+test("l'hôte n'est pas transféré au milieu d'une partie", () => {
+  const room={status:'playing',hostId:'host',players:[{id:'host',ws:null},{id:'p2',ws:{}}],spectators:[]};
+  assert.equal(transferHost(room),null);
+  assert.equal(room.hostId,'host');
 });
