@@ -63,7 +63,7 @@ function deletePersistedRoom(roomCode){
 async function restoreRooms(){
   if(!persistenceEnabled())return;
   const since=new Date(Date.now()-24*60*60*1000).toISOString();
-  const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_active_games?select=code,state&updated_at=gte.${encodeURIComponent(since)}`,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}});
+  const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_active_games?select=code,state&updated_at=gte.${encodeURIComponent(since)}`,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`},signal:AbortSignal.timeout(5000)});
   if(!response.ok){console.error('Restauration des parties impossible :',response.status);return;}
   const rows=await response.json();
   for(const row of rows){const saved=row.state;if(!saved||saved.code!==row.code||!Array.isArray(saved.players)||!Array.isArray(saved.spectators))continue;saved.maxPlayers=Math.max(2,Math.min(6,Number(saved.maxPlayers)||6));saved.players=saved.players.map(player=>({...player,ws:null}));saved.spectators=saved.spectators.map(spectator=>({...spectator,ws:null}));saved.chat=Array.isArray(saved.chat)?saved.chat:[];saved.played=Array.isArray(saved.played)?saved.played:[];rooms.set(saved.code,saved)}
@@ -294,5 +294,8 @@ function handle(ws, msg){
 wss.on('connection',ws=>{ws.isAlive=true;send(ws,'lobbies',{lobbies:lobbySummaries(rooms)});ws.on('pong',()=>ws.isAlive=true);ws.on('message',raw=>{try{handle(ws,JSON.parse(raw));}catch(e){console.error(e);fail(ws,'Action invalide.');}});ws.on('close',()=>{const room=rooms.get(ws.room),p=room&&members(room).find(x=>x.id===ws.playerId);if(p&&p.ws===ws){p.ws=null;transferHost(room);broadcast(room);}else broadcastLobbies();});});
 setInterval(()=>{wss.clients.forEach(ws=>{if(!ws.isAlive)return ws.terminate();ws.isAlive=false;ws.ping();});},25000).unref();
 setInterval(()=>{for(const [roomCode,room] of rooms)if(members(room).every(p=>!p.ws)){rooms.delete(roomCode);deletePersistedRoom(roomCode)}},30*60*1000).unref();
-if(require.main===module)restoreRooms().catch(console.error).finally(()=>server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`)));
+if(require.main===module){
+  server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`));
+  restoreRooms().catch(error=>console.error('Restauration Supabase différée :',error.message));
+}
 module.exports={resolve,publicState,aggregateResults,removePlayer,transferHost,lobbySummaries};
