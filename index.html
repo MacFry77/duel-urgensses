@@ -124,6 +124,8 @@
           </select>
         </label>
         <div id="waitingPlayers" class="waiting-players"></div>
+        <button id="hostJoinAlertButton" class="room-join-alert hidden" type="button">🔔 ME PRÉVENIR QUAND UN JOUEUR ARRIVE</button>
+        <p id="hostJoinAlertStatus" class="connection-status hidden"></p>
         <button id="onlineStartButton" class="primary arena-button hidden">LANCER LA PARTIE</button>
         <button id="cancelWaitingButton" class="cancel-waiting">ANNULER ET REVENIR À L’ACCUEIL</button>
         <p id="waitingHint" class="connection-status"></p>
@@ -161,7 +163,7 @@
       <button id="chatHeader" class="chat-header"><span>💬 CHAT DE LA SALLE</span><b id="chatBadge"></b><i>⌄</i></button>
       <div id="chatBody" class="chat-body">
         <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
-        <form id="chatForm" class="chat-form"><input id="chatInput" maxlength="300" autocomplete="off" placeholder="Écrire un message…"><button>ENVOYER</button></form>
+        <form id="chatForm" class="chat-form"><textarea id="chatInput" maxlength="1000" rows="2" autocomplete="off" placeholder="Écrire un message…"></textarea><div class="chat-send-row"><small id="chatStatus">0 / 1000</small><button>ENVOYER</button></div></form>
       </div>
     </aside>
   </main>
