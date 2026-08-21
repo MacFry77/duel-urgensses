@@ -125,7 +125,7 @@ async function restoreRooms(){
   const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_active_games?select=code,state&updated_at=gte.${encodeURIComponent(since)}`,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`},signal:AbortSignal.timeout(5000)});
   if(!response.ok){console.error('Restauration des parties impossible :',response.status);return;}
   const rows=await response.json();
-  for(const row of rows){const saved=row.state;if(!saved||saved.code!==row.code||!Array.isArray(saved.players)||!Array.isArray(saved.spectators))continue;saved.revision=Math.max(0,Number(saved.revision)||0);saved.maxPlayers=Math.max(2,Math.min(6,Number(saved.maxPlayers)||6));saved.players=saved.players.map(player=>({...player,ws:null}));saved.spectators=saved.spectators.map(spectator=>({...spectator,ws:null}));saved.chat=Array.isArray(saved.chat)?saved.chat:[];saved.played=Array.isArray(saved.played)?saved.played:[];rooms.set(saved.code,saved)}
+  for(const row of rows){const saved=row.state;if(!saved||saved.code!==row.code||!Array.isArray(saved.players)||!Array.isArray(saved.spectators))continue;saved.revision=Math.max(0,Number(saved.revision)||0);saved.maxPlayers=Math.max(2,Math.min(6,Number(saved.maxPlayers)||6));saved.players=saved.players.map(player=>({...player,exactRounds:Number(player.exactRounds)||0,zeroSuccesses:Number(player.zeroSuccesses)||0,missedRounds:Number(player.missedRounds)||0,totalBid:Number(player.totalBid)||0,boldestBid:Number(player.boldestBid)||0,ws:null}));saved.spectators=saved.spectators.map(spectator=>({...spectator,ws:null}));saved.chat=Array.isArray(saved.chat)?saved.chat:[];saved.played=Array.isArray(saved.played)?saved.played:[];rooms.set(saved.code,saved)}
   if(rows.length)console.log(`${rooms.size} partie(s) restaurée(s) depuis Supabase.`);
 }
 const aggregateResults = rows => [...rows.reduce((map,row)=>{const character=normalizeCharacter(row.character),value=map.get(character)||{character,games:0,wins:0,losses:0,draws:0,points:0,tricks:0};value.games++;value[row.result==='win'?'wins':row.result==='draw'?'draws':'losses']++;value.points+=Number(row.score)||0;value.tricks+=Number(row.tricks)||0;map.set(character,value);return map;},new Map()).values()].map(r=>({...r,winRate:Math.round(r.wins/r.games*100)})).sort((a,b)=>b.points-a.points||b.wins-a.wins||b.winRate-a.winRate||a.character.localeCompare(b.character,'fr'));
@@ -180,7 +180,9 @@ const publicState = (room, viewerId) => ({
     // Pendant les paris, chacun ne voit que son propre choix. Les paris sont
     // révélés simultanément lorsque le dernier joueur a choisi.
     bid:room.phase==='bids'&&p.id!==viewerId?null:p.bid,
-    tricks:p.tricks,totalTricks:p.totalTricks||0,connected:!!p.ws,
+    tricks:p.tricks,totalTricks:p.totalTricks||0,exactRounds:p.exactRounds||0,
+    zeroSuccesses:p.zeroSuccesses||0,missedRounds:p.missedRounds||0,
+    totalBid:p.totalBid||0,boldestBid:p.boldestBid||0,connected:!!p.ws,
     dice:p.id===viewerId?p.dice:p.dice.map(()=>({hidden:true}))
   }))
 });
@@ -227,7 +229,7 @@ function resolve(room) {
   if(!nums.length)return plays.at(-1).player;
   return nums.reduce((a,b)=>b.die.face>=a.die.face?b:a).player;
 }
-function scoreRound(room){room.players.forEach(p=>{if(p.bid===p.tricks)p.score+=p.bid===0?room.round*10:p.tricks*20;});}
+function scoreRound(room){room.players.forEach(p=>{const bid=Number(p.bid)||0;p.totalBid=(p.totalBid||0)+bid;p.boldestBid=Math.max(p.boldestBid||0,bid);if(p.bid===p.tricks){p.exactRounds=(p.exactRounds||0)+1;if(p.bid===0)p.zeroSuccesses=(p.zeroSuccesses||0)+1;p.score+=p.bid===0?room.round*10:p.tricks*20}else p.missedRounds=(p.missedRounds||0)+1;});}
 function cleanDisplayName(value){return String(value||'').replace(/[\u0000-\u001f\u007f]/g,'').trim().replace(/\s+/g,' ').slice(0,24)}
 function removePlayer(room,targetId){
   const removedIndex=room.players.findIndex(p=>p.id===targetId);if(removedIndex<0)return null;
@@ -334,7 +336,7 @@ function handle(ws, msg){
     if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut lancer la partie.");
     if(room.players.length<2)return fail(ws,'Il faut au moins deux joueurs.');
     if(room.players.length*room.totalRounds>36)return fail(ws,`Avec ${room.players.length} joueurs, choisissez au maximum ${Math.floor(36/room.players.length)} manches.`);
-    room.status='playing';room.resultRecorded=false;room.players.forEach(p=>{p.score=0;p.totalTricks=0});room.round=1;room.leader=0;deal(room);broadcast(room);trackAnalytics('game_started',{roomCode:room.code,playerCount:room.players.length,rounds:room.totalRounds}).catch(error=>console.error('Départ non compté :',error.message));return;
+    room.status='playing';room.resultRecorded=false;room.players.forEach(p=>{p.score=0;p.totalTricks=0;p.exactRounds=0;p.zeroSuccesses=0;p.missedRounds=0;p.totalBid=0;p.boldestBid=0});room.round=1;room.leader=0;deal(room);broadcast(room);trackAnalytics('game_started',{roomCode:room.code,playerCount:room.players.length,rounds:room.totalRounds}).catch(error=>console.error('Départ non compté :',error.message));return;
   }
   if(msg.type==='reset'){
     if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut recommencer la partie.");
@@ -377,4 +379,4 @@ setInterval(()=>{for(const [roomCode,room] of rooms)if(members(room).every(p=>!p
 if(require.main===module){
   restoreRooms().catch(error=>console.error('Restauration Supabase impossible :',error.message)).finally(()=>server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`)));
 }
-module.exports={resolve,publicState,aggregateResults,removePlayer,transferHost,lobbySummaries,replaceSocket};
+module.exports={resolve,publicState,aggregateResults,removePlayer,transferHost,lobbySummaries,replaceSocket,scoreRound};

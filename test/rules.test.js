@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { resolve, publicState, aggregateResults, removePlayer, transferHost, lobbySummaries, replaceSocket } = require('../server');
+const { resolve, publicState, aggregateResults, removePlayer, transferHost, lobbySummaries, replaceSocket, scoreRound } = require('../server');
 
 const symbol = color => ({color, face:'symbol'});
 const flag = color => ({color, face:'flag'});
@@ -28,6 +28,16 @@ test('un drapeau blanc Urgentiste vaut zéro face à un symbole Chirurgien', () 
 test('à valeur numérique identique, le dernier dé joué gagne', () => {
   const die = color => ({color, face:4});
   assert.equal(resolve(played([die('red'), die('red'), die('red')])), 2);
+});
+
+test('le décompte mémorise les faits servant aux chroniques de fin', () => {
+  const room={round:3,players:[
+    {bid:0,tricks:0,score:0},
+    {bid:4,tricks:3,score:20}
+  ]};
+  scoreRound(room);
+  assert.deepEqual(room.players[0],{bid:0,tricks:0,score:30,totalBid:0,boldestBid:0,exactRounds:1,zeroSuccesses:1});
+  assert.deepEqual(room.players[1],{bid:4,tricks:3,score:20,totalBid:4,boldestBid:4,missedRounds:1});
 });
 
 test('les paris adverses restent secrets puis sont révélés ensemble', () => {

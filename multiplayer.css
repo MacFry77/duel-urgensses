@@ -684,3 +684,9 @@
 .push-controls #installAppButton{border-color:#75cdbb;background:linear-gradient(#315e54,#183c34);color:#e4fff8}
 .push-controls small{color:#9ebdb0;font-size:.6rem;line-height:1.35}
 @media(max-width:600px){.open-challenges{margin-top:13px;padding:10px}.open-challenge{grid-template-columns:1fr;gap:7px}.open-challenge-actions{display:grid;grid-template-columns:1fr 1fr}.open-challenge button{padding-inline:7px}.open-challenges-list{max-height:190px}}
+
+/* Petites chroniques de fin : présentes uniquement sous le podium. */
+.podium-chronicles{width:min(650px,90%);margin:22px auto 0;padding:14px 18px;border-top:1px solid #d7b45888;border-bottom:1px solid #d7b45866;background:linear-gradient(90deg,transparent,#0a251fd9 10% 90%,transparent);text-align:left}
+.podium-chronicles h3{margin:0 0 10px;color:#f4ce70;font:900 10px/1 Georgia,serif;letter-spacing:.2em;text-align:center;text-shadow:0 2px 2px #000}
+.podium-chronicles p{margin:7px 0;padding:7px 12px;border-left:2px solid #c79a3e;background:#061713a8;color:#f2ead3;font:700 13px/1.35 Georgia,serif;text-shadow:0 1px 1px #000}
+@media(max-width:620px){.podium-chronicles{width:94%;margin-top:15px;padding:10px}.podium-chronicles p{padding:6px 8px;font-size:11px}}

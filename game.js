@@ -120,12 +120,29 @@ function leaveCurrentRoom(askConfirmation=true){
   }
 }
 function render(){$('lobby').classList.toggle('hidden',!!state);$('waitingRoom').classList.toggle('hidden',!state||state.status!=='lobby');$('game').classList.toggle('hidden',!state||state.status==='lobby');$('chatPanel').classList.toggle('hidden',!state);$('leaveButton').classList.toggle('hidden',!state);$('spectatorModeNotice').classList.toggle('hidden',!state||state.viewerRole!=='spectator'||state.status==='lobby');renderChat();if(state.status==='lobby'){podiumPresented=false;if($('podiumDialog').open)$('podiumDialog').close();return renderWaiting()}renderGame()}
+function matchChronicles(ranked){
+  if(!ranked.length)return[];
+  const notes=[],best=ranked[0].score,winners=ranked.filter(player=>player.score===best);
+  if(winners.length>1)notes.push(`⚔️ ${winners.map(player=>player.name).join(' et ')} refusent de se départager : même score, même droit de fanfaronner.`);
+  else notes.push(`🏆 ${ranked[0].name} transforme ${ranked[0].score} points en prise de pouvoir parfaitement assumée.`);
+  const zero=[...ranked].sort((a,b)=>(b.zeroSuccesses||0)-(a.zeroSuccesses||0))[0];
+  const exact=[...ranked].sort((a,b)=>(b.exactRounds||0)-(a.exactRounds||0))[0];
+  const tricks=[...ranked].sort((a,b)=>(b.totalTricks||0)-(a.totalTricks||0))[0];
+  const bold=[...ranked].sort((a,b)=>(b.boldestBid||0)-(a.boldestBid||0))[0];
+  if((zero?.zeroSuccesses||0)>0)notes.push(`🫥 ${zero.name} réussit ${zero.zeroSuccesses} pari${zero.zeroSuccesses>1?'s':''} à zéro : gagner en ne prenant rien, un art très spécialisé.`);
+  if(notes.length<3&&(exact?.exactRounds||0)>0)notes.push(`🎯 ${exact.name} vise juste ${exact.exactRounds} fois. À ce stade, ce n’est plus un pari, c’est une ordonnance.`);
+  if(notes.length<3&&(tricks?.totalTricks||0)>0)notes.push(`🧹 ${tricks.name} ramasse ${tricks.totalTricks} pli${tricks.totalTricks>1?'s':''}. Il ne restait presque plus rien sur la table.`);
+  if(notes.length<3&&(bold?.boldestBid||0)>=4)notes.push(`🔥 ${bold.name} ose annoncer ${bold.boldestBid} plis. La prudence a quitté le service.`);
+  const last=ranked.at(-1);if(notes.length<2&&last&&last.score===0)notes.push(`🩹 ${last.name} termine à zéro point, mais avec une expérience de terrain désormais considérable.`);
+  return notes.slice(0,3);
+}
 function showFinalPodium(){
   if(podiumPresented||state.phase!=='over')return;podiumPresented=true;
   const ranked=[...state.players].sort((a,b)=>b.score-a.score||b.tricks-a.tricks||a.name.localeCompare(b.name,'fr')),best=ranked[0]?.score,winners=ranked.filter(player=>player.score===best),winnerNames=winners.map(player=>player.name);
   const title=winners.length>1?`ÉGALITÉ ENTRE ${winnerNames.map(esc).join(' ET ')}`:`${esc(winnerNames[0]||'')} REMPORTE LE DUEL !`;
   const top=ranked.slice(0,3),visual=top.length===2?[top[1],top[0]]:top.length>=3?[top[1],top[0],top[2]]:top;
-  $('podiumBody').innerHTML=`<h2>${title}</h2><p class="podium-subtitle">Classement final · ${state.totalRounds} manche${state.totalRounds>1?'s':''}</p><div class="podium-stage podium-${visual.length}">${visual.map(player=>{const place=ranked.indexOf(player)+1,champion=player.score===best;return `<article class="podium-place place-${place} ${champion?'champion':''}"><div class="podium-avatar"><span class="podium-rays"></span><img src="assets/characters/${characterFile(player.character)}" alt="${esc(player.name)}"></div><div class="podium-step"><b>${place}</b><strong>${esc(player.name)}</strong><span>${player.score} points</span><small>${player.totalTricks??0} pli${(player.totalTricks??0)>1?'s':''}</small></div></article>`}).join('')}</div>${ranked.length>3?`<ol class="podium-rest">${ranked.slice(3).map((player,index)=>`<li><b>${index+4}. ${esc(player.name)}</b><span>${player.score} points</span></li>`).join('')}</ol>`:''}`;
+  const chronicles=matchChronicles(ranked);
+  $('podiumBody').innerHTML=`<h2>${title}</h2><p class="podium-subtitle">Classement final · ${state.totalRounds} manche${state.totalRounds>1?'s':''}</p><div class="podium-stage podium-${visual.length}">${visual.map(player=>{const place=ranked.indexOf(player)+1,champion=player.score===best;return `<article class="podium-place place-${place} ${champion?'champion':''}"><div class="podium-avatar"><span class="podium-rays"></span><img src="assets/characters/${characterFile(player.character)}" alt="${esc(player.name)}"></div><div class="podium-step"><b>${place}</b><strong>${esc(player.name)}</strong><span>${player.score} points</span><small>${player.totalTricks??0} pli${(player.totalTricks??0)>1?'s':''}</small></div></article>`}).join('')}</div>${ranked.length>3?`<ol class="podium-rest">${ranked.slice(3).map((player,index)=>`<li><b>${index+4}. ${esc(player.name)}</b><span>${player.score} points</span></li>`).join('')}</ol>`:''}<section class="podium-chronicles"><h3>LA CHRONIQUE DU DUEL</h3>${chronicles.map(note=>`<p>${esc(note)}</p>`).join('')}</section>`;
   const host=state.viewerId===state.hostId;$('podiumLobbyButton').classList.toggle('hidden',!host);$('podiumNewRoomButton').classList.toggle('hidden',!host);$('podiumDialog').showModal();
 }
 function kickButton(player){return state.viewerId===state.hostId&&player.id!==state.hostId?`<button class="kick-player" data-kick="${player.id}" title="Exclure ${esc(player.name)}">EXCLURE</button>`:''}
