@@ -78,6 +78,10 @@ async function initPWA(){
   if(!('serviceWorker'in navigator))return refreshPushUI();
   try{swRegistration=await navigator.serviceWorker.register('/sw.js?v=1');await navigator.serviceWorker.ready;const config=await fetch('/api/push/public-key',{cache:'no-store'}).then(response=>response.json());pushPublicKey=config.enabled?config.publicKey:'';const existing=await swRegistration.pushManager.getSubscription();if(existing)await syncPushSubscription(existing);await refreshPushUI()}catch(error){console.error(error);$('pushStatus').textContent='Les alertes sont momentanément indisponibles.'}
 }
+function initAnonymousAnalytics(){
+  let visitorId=localStorage.getItem('duel-anonymous-visitor');if(!visitorId){visitorId=crypto.randomUUID?.()||`${Date.now()}-${Math.random()}`;localStorage.setItem('duel-anonymous-visitor',visitorId)}
+  fetch('/api/analytics/visit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({visitorId}),keepalive:true}).catch(()=>{});
+}
 async function installApp(){if(!deferredInstallPrompt)return;await deferredInstallPrompt.prompt();deferredInstallPrompt=null;await refreshPushUI()}
 function invitationUrl(){const url=new URL(location.href);url.search='';url.hash='';url.searchParams.set('join',state.code);return url.toString()}
 function invitationText(){return `Je t’invite à jouer à Duel Urgensses ! Rejoins directement ma partie : ${invitationUrl()}`}
@@ -147,6 +151,6 @@ function init(){
   $('chatForm').onsubmit=e=>{e.preventDefault();const text=$('chatInput').value.trim();if(text){send('chat',{text});$('chatInput').value=''}};
   $('rulesButton').onclick=()=>$('rulesDialog').showModal();$('closeRules').onclick=()=>$('rulesDialog').close();$('legend').innerHTML=['brown','green','blue'].map(c=>`<div class="legend-item">${dieHTML({color:c,face:'symbol'})}<span>${COLORS[c]}</span></div>`).join('');connect()
   $('leaderboardButton').onclick=showLeaderboard;$('closeLeaderboard').onclick=()=>$('leaderboardDialog').close();
-  $('galleryButton').onclick=showGallery;$('closeGallery').onclick=()=>$('galleryDialog').close();document.addEventListener('visibilitychange',resynchronize);window.addEventListener('online',resynchronize);window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstallPrompt=event;refreshPushUI()});window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;refreshPushUI()});initPWA();
+  $('galleryButton').onclick=showGallery;$('closeGallery').onclick=()=>$('galleryDialog').close();document.addEventListener('visibilitychange',resynchronize);window.addEventListener('online',resynchronize);window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstallPrompt=event;refreshPushUI()});window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;refreshPushUI()});initPWA();initAnonymousAnalytics();
 }
 init();

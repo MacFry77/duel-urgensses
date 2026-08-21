@@ -38,6 +38,23 @@ async function saveResults(rows){
   if(SUPABASE_URL&&SUPABASE_KEY){const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_results`,{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(rows)});if(response.ok)return;console.error('Écriture Supabase impossible :',response.status);}
   writeLocalResults([...readLocalResults(),...rows]);
 }
+async function trackAnalytics(eventType,{visitorId='',roomCode='',playerCount=0,rounds=0}={}){
+  if(!persistenceEnabled())return;
+  const visitorHash=visitorId?crypto.createHash('sha256').update(`${SUPABASE_KEY}:${String(visitorId).slice(0,100)}`).digest('hex'):null;
+  const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_analytics_events`,{method:'POST',headers:supabaseHeaders({'Content-Type':'application/json',Prefer:'return=minimal'}),body:JSON.stringify({event_type:eventType,visitor_hash:visitorHash,room_code:String(roomCode||'').slice(0,12)||null,player_count:Number(playerCount)||0,rounds:Number(rounds)||0}),signal:AbortSignal.timeout(5000)});
+  if(!response.ok)console.error('Statistique non enregistrée :',response.status);
+}
+const analyticsDay=value=>new Intl.DateTimeFormat('fr-CA',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(value));
+async function analyticsSummary(days=35){
+  const safeDays=Math.max(7,Math.min(90,Number(days)||35)),since=new Date(Date.now()-safeDays*86400000).toISOString();
+  const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_analytics_events?select=event_type,visitor_hash,room_code,player_count,rounds,created_at&created_at=gte.${encodeURIComponent(since)}&order=created_at.asc&limit=10000`,{headers:supabaseHeaders(),signal:AbortSignal.timeout(5000)});
+  if(!response.ok)throw new Error(`Lecture des statistiques impossible (${response.status})`);
+  const events=await response.json(),daily=new Map(),periodVisitors=new Set();
+  for(const event of events){const day=analyticsDay(event.created_at),row=daily.get(day)||{date:day,connections:0,uniqueVisitors:new Set(),roomsCreated:0,gamesStarted:0,gamesCompleted:0};if(event.event_type==='visit'){row.connections++;if(event.visitor_hash){row.uniqueVisitors.add(event.visitor_hash);periodVisitors.add(event.visitor_hash)}}if(event.event_type==='room_created')row.roomsCreated++;if(event.event_type==='game_started')row.gamesStarted++;if(event.event_type==='game_completed')row.gamesCompleted++;daily.set(day,row)}
+  const rows=[...daily.values()].map(row=>({...row,uniqueVisitors:row.uniqueVisitors.size})),totals=rows.reduce((sum,row)=>({connections:sum.connections+row.connections,uniqueVisitors:periodVisitors.size,roomsCreated:sum.roomsCreated+row.roomsCreated,gamesStarted:sum.gamesStarted+row.gamesStarted,gamesCompleted:sum.gamesCompleted+row.gamesCompleted}),{connections:0,uniqueVisitors:0,roomsCreated:0,gamesStarted:0,gamesCompleted:0});
+  const today=analyticsDay(Date.now()),todayStats=rows.find(row=>row.date===today)||{date:today,connections:0,uniqueVisitors:0,roomsCreated:0,gamesStarted:0,gamesCompleted:0};
+  return {generatedAt:new Date().toISOString(),days:safeDays,today:todayStats,totals,daily:rows,live:{rooms:rooms.size,players:[...rooms.values()].reduce((n,r)=>n+r.players.filter(p=>p.ws).length,0),spectators:[...rooms.values()].reduce((n,r)=>n+r.spectators.filter(p=>p.ws).length,0)}};
+}
 const persistenceEnabled = () => Boolean(SUPABASE_URL && SUPABASE_KEY);
 const supabaseHeaders = extra => ({apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,...extra});
 const validSubscription = value => value && typeof value.endpoint==='string' && value.endpoint.startsWith('https://') && value.endpoint.length<2048 && value.keys && typeof value.keys.p256dh==='string' && typeof value.keys.auth==='string';
@@ -118,7 +135,9 @@ const server = http.createServer(async (req, res) => {
   if(urlPath==='/api/push/subscribe'&&req.method==='POST') { try{const body=await readJsonBody(req),saved=await savePushSubscription(body.subscription,req.headers['user-agent']);res.writeHead(saved?204:503);return res.end();}catch(error){console.error(error);res.writeHead(400);return res.end('Abonnement invalide');} }
   if(urlPath==='/api/push/subscribe'&&req.method==='DELETE') { try{const body=await readJsonBody(req);await deletePushSubscription(body.endpoint);res.writeHead(204);return res.end();}catch(error){console.error(error);res.writeHead(400);return res.end('Désabonnement invalide');} }
   if(urlPath==='/api/leaderboard') { try { const rows=aggregateResults(await readResults());res.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});return res.end(JSON.stringify(rows)); } catch(error){console.error(error);res.writeHead(500);return res.end('Classement indisponible');} }
-  const relative = urlPath === '/' ? 'index.html' : urlPath.replace(/^\/+/, '');
+  if(urlPath==='/api/analytics/visit'&&req.method==='POST'){try{const body=await readJsonBody(req,1000);trackAnalytics('visit',{visitorId:body.visitorId}).catch(error=>console.error('Visite non comptée :',error.message));res.writeHead(204);return res.end()}catch{res.writeHead(400);return res.end('Identifiant invalide')}}
+  if(urlPath==='/api/admin/stats'){try{if(!persistenceEnabled())throw new Error('Supabase non configuré');const data=await analyticsSummary(new URL(req.url,'http://localhost').searchParams.get('days'));res.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});return res.end(JSON.stringify(data))}catch(error){console.error(error);res.writeHead(503);return res.end('Statistiques indisponibles')}}
+  const relative = urlPath === '/' ? 'index.html' : urlPath === '/admin-stats' ? 'admin-stats.html' : urlPath.replace(/^\/+/, '');
   const file = path.resolve(ROOT, relative);
   if (!file.startsWith(ROOT) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
     res.writeHead(404); return res.end('Introuvable');
@@ -228,6 +247,7 @@ function removePlayer(room,targetId){
 function recordFinishedGame(room){
   if(room.resultRecorded)return;room.resultRecorded=true;const best=Math.max(...room.players.map(p=>p.score)),winners=room.players.filter(p=>p.score===best);
   const now=new Date().toISOString(),gameId=id();const rows=room.players.map(p=>({game_id:gameId,character:normalizeCharacter(p.character),result:winners.length>1&&p.score===best?'draw':p.score===best?'win':'loss',score:p.score,tricks:p.totalTricks||0,played_at:now}));saveResults(rows).catch(console.error);
+  trackAnalytics('game_completed',{roomCode:room.code,playerCount:room.players.length,rounds:room.totalRounds}).catch(error=>console.error('Fin de partie non comptée :',error.message));
 }
 function nextStep(room){
   if(room.players.every(p=>p.dice.length===0)){
@@ -242,7 +262,7 @@ function handle(ws, msg){
     const room={code:roomCode,status:'lobby',hostId:playerId,revision:0,totalRounds:Math.max(1,Math.min(8,Number(msg.rounds)||8)),maxPlayers:Math.max(2,Math.min(6,Number(msg.maxPlayers)||6)),round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[],resultRecorded:false};
     if(msg.organizer)room.spectators.push({id:playerId,name:cleanDisplayName(msg.name)||'Organisateur',ws});
     else {const character=normalizeCharacter(String(msg.character||'Personnage').slice(0,24));room.players.push({id:playerId,name:character,character,score:0,bid:null,tricks:0,dice:[],ws});}
-    rooms.set(roomCode,room);ws.room=roomCode;ws.playerId=playerId;send(ws,'session',{code:roomCode,playerId});broadcast(room);notifyOpenChallenge(room,String(msg.pushEndpoint||'')).catch(error=>console.error('Alerte de défi impossible :',error.message));return;
+    rooms.set(roomCode,room);ws.room=roomCode;ws.playerId=playerId;send(ws,'session',{code:roomCode,playerId});broadcast(room);trackAnalytics('room_created',{roomCode,playerCount:room.players.length,rounds:room.totalRounds}).catch(error=>console.error('Salle non comptée :',error.message));notifyOpenChallenge(room,String(msg.pushEndpoint||'')).catch(error=>console.error('Alerte de défi impossible :',error.message));return;
   }
   if(msg.type==='join'){
     const room=rooms.get(String(msg.code||'').toUpperCase());if(!room)return fail(ws,'Salle introuvable.');
@@ -306,7 +326,7 @@ function handle(ws, msg){
     if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut lancer la partie.");
     if(room.players.length<2)return fail(ws,'Il faut au moins deux joueurs.');
     if(room.players.length*room.totalRounds>36)return fail(ws,`Avec ${room.players.length} joueurs, choisissez au maximum ${Math.floor(36/room.players.length)} manches.`);
-    room.status='playing';room.resultRecorded=false;room.players.forEach(p=>{p.score=0;p.totalTricks=0});room.round=1;room.leader=0;deal(room);broadcast(room);return;
+    room.status='playing';room.resultRecorded=false;room.players.forEach(p=>{p.score=0;p.totalTricks=0});room.round=1;room.leader=0;deal(room);broadcast(room);trackAnalytics('game_started',{roomCode:room.code,playerCount:room.players.length,rounds:room.totalRounds}).catch(error=>console.error('Départ non compté :',error.message));return;
   }
   if(msg.type==='reset'){
     if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut recommencer la partie.");
@@ -320,7 +340,7 @@ function handle(ws, msg){
     const fresh={code:roomCode,status:'lobby',hostId:playerId,revision:0,totalRounds:room.totalRounds,maxPlayers:room.maxPlayers,round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],players:[],spectators:[],chat:[],resultRecorded:false};
     if(organizer)fresh.spectators.push({id:playerId,name:'Organisateur',ws});
     else fresh.players.push({id:playerId,name:actor.character,character:actor.character,score:0,bid:null,tricks:0,dice:[],ws});
-    rooms.set(roomCode,fresh);ws.room=roomCode;ws.playerId=playerId;send(ws,'session',{code:roomCode,playerId});broadcast(fresh);return;
+    rooms.set(roomCode,fresh);ws.room=roomCode;ws.playerId=playerId;send(ws,'session',{code:roomCode,playerId});broadcast(fresh);trackAnalytics('room_created',{roomCode,playerCount:fresh.players.length,rounds:fresh.totalRounds}).catch(error=>console.error('Salle non comptée :',error.message));return;
   }
   if(!player)return fail(ws,'Vous observez cette partie et ne pouvez pas jouer.');
   if(room.status!=='playing')return fail(ws,'La partie n’est pas en cours.');

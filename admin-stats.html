@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#071b20"><title>Duel Urgensses · Statistiques</title>
+  <link rel="icon" href="/assets/icons/duel-urgensses-32.png"><link rel="stylesheet" href="admin-stats.css?v=1">
+</head>
+<body>
+  <main>
+    <header><div><small>TABLEAU DE BORD PRIVÉ</small><h1>Chroniques de l’arène</h1><p>Fréquentation et parties de Duel Urgensses</p></div><div class="live"><i></i><span>ACTUALISATION AUTOMATIQUE</span><b id="updatedAt">—</b></div></header>
+    <section class="controls"><button data-days="7">7 JOURS</button><button data-days="35" class="active">35 JOURS</button><button data-days="90">90 JOURS</button><button id="refresh">ACTUALISER</button></section>
+    <section class="live-strip"><span>SALLES EN MÉMOIRE <b id="liveRooms">—</b></span><span>JOUEURS CONNECTÉS <b id="livePlayers">—</b></span><span>SPECTATEURS <b id="liveSpectators">—</b></span></section>
+    <h2>Aujourd’hui</h2><section id="todayCards" class="cards"></section>
+    <h2>Sur la période</h2><section id="totalCards" class="cards"></section>
+    <section class="charts"><article><h2>Évolution quotidienne</h2><div class="legend"><span class="visitors">Visiteurs</span><span class="rooms">Salles créées</span><span class="completed">Parties terminées</span></div><div id="lineChart" class="chart"></div></article><article><h2>Taux d’achèvement</h2><div id="completionGauge" class="gauge"></div></article></section>
+    <section class="calendar-panel"><h2>Calendrier d’activité</h2><p>Intensité calculée selon le nombre de visiteurs uniques.</p><div id="calendar" class="calendar"></div></section>
+    <section class="table-panel"><h2>Journal quotidien</h2><div class="table-scroll"><table><thead><tr><th>Date</th><th>Visiteurs</th><th>Connexions</th><th>Salles</th><th>Lancées</th><th>Terminées</th></tr></thead><tbody id="dailyRows"></tbody></table></div></section>
+    <p id="error" class="error"></p><footer>Données anonymes · aucune adresse IP ni identité personnelle conservée</footer>
+  </main>
+  <script src="admin-stats.js?v=1"></script>
+</body></html>
