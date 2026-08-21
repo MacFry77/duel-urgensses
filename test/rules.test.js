@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { resolve, publicState, aggregateResults, removePlayer, transferHost, lobbySummaries, activeGameSummaries, replaceSocket, scoreRound } = require('../server');
+const { resolve, publicState, aggregateResults, removePlayer, transferHost, lobbySummaries, activeGameSummaries, replaceSocket, scoreRound, startMatch } = require('../server');
 
 const symbol = color => ({color, face:'symbol'});
 const flag = color => ({color, face:'flag'});
@@ -28,6 +28,17 @@ test('un drapeau blanc Urgentiste vaut zéro face à un symbole Chirurgien', () 
 test('à valeur numérique identique, le dernier dé joué gagne', () => {
   const die = color => ({color, face:4});
   assert.equal(resolve(played([die('red'), die('red'), die('red')])), 2);
+});
+
+test('une revanche remet les scores à zéro et redémarre avec les mêmes joueurs', () => {
+  const room={status:'finished',phase:'over',resultRecorded:true,round:4,leader:1,turn:1,trick:4,played:[{player:0,die:{color:'red',face:3}}],leadColor:'red',players:[
+    {id:'a',score:80,totalTricks:4,exactRounds:2,zeroSuccesses:1,missedRounds:2,totalBid:7,boldestBid:3,dice:[],bid:2,tricks:1},
+    {id:'b',score:60,totalTricks:3,exactRounds:1,zeroSuccesses:0,missedRounds:3,totalBid:6,boldestBid:2,dice:[],bid:1,tricks:0}
+  ]};
+  startMatch(room);
+  assert.equal(room.status,'playing');assert.equal(room.phase,'bids');assert.equal(room.round,1);assert.equal(room.resultRecorded,false);
+  assert.deepEqual(room.players.map(player=>player.score),[0,0]);assert.deepEqual(room.players.map(player=>player.totalTricks),[0,0]);
+  assert.ok(room.players.every(player=>player.dice.length===1));
 });
 
 test('le décompte mémorise les faits servant aux chroniques de fin', () => {

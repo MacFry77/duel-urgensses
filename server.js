@@ -213,6 +213,11 @@ function deal(room) {
   room.players.forEach(p=>{p.dice=pool.splice(0,room.round).map(roll);p.bid=null;p.tricks=0;});
   room.phase='bids';room.turn=0;room.trick=1;room.played=[];room.leadColor=null;room.message='';
 }
+function startMatch(room){
+  room.status='playing';room.resultRecorded=false;
+  room.players.forEach(p=>{p.score=0;p.totalTricks=0;p.exactRounds=0;p.zeroSuccesses=0;p.missedRounds=0;p.totalBid=0;p.boldestBid=0});
+  room.round=1;room.leader=0;deal(room);
+}
 function legalDice(room, player) {
   if (!room.leadColor) return player.dice;
   const matching=player.dice.filter(d=>d.color===room.leadColor);
@@ -340,7 +345,13 @@ function handle(ws, msg){
     if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut lancer la partie.");
     if(room.players.length<2)return fail(ws,'Il faut au moins deux joueurs.');
     if(room.players.length*room.totalRounds>36)return fail(ws,`Avec ${room.players.length} joueurs, choisissez au maximum ${Math.floor(36/room.players.length)} manches.`);
-    room.status='playing';room.resultRecorded=false;room.players.forEach(p=>{p.score=0;p.totalTricks=0;p.exactRounds=0;p.zeroSuccesses=0;p.missedRounds=0;p.totalBid=0;p.boldestBid=0});room.round=1;room.leader=0;deal(room);broadcast(room);trackAnalytics('game_started',{roomCode:room.code,playerCount:room.players.length,rounds:room.totalRounds}).catch(error=>console.error('Départ non compté :',error.message));return;
+    startMatch(room);broadcast(room);trackAnalytics('game_started',{roomCode:room.code,playerCount:room.players.length,rounds:room.totalRounds}).catch(error=>console.error('Départ non compté :',error.message));return;
+  }
+  if(msg.type==='rematch'){
+    if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut lancer la revanche.");
+    if(room.phase!=='over')return fail(ws,'La revanche est disponible uniquement à la fin de la partie.');
+    if(room.players.length<2||room.players.some(p=>!p.ws))return fail(ws,'Tous les joueurs doivent être reconnectés pour lancer la revanche.');
+    startMatch(room);broadcast(room);trackAnalytics('game_started',{roomCode:room.code,playerCount:room.players.length,rounds:room.totalRounds,rematch:true}).catch(error=>console.error('Revanche non comptée :',error.message));return;
   }
   if(msg.type==='reset'){
     if(actor.id!==room.hostId)return fail(ws,"Seul l'hôte peut recommencer la partie.");
@@ -383,4 +394,4 @@ setInterval(()=>{for(const [roomCode,room] of rooms)if(members(room).every(p=>!p
 if(require.main===module){
   restoreRooms().catch(error=>console.error('Restauration Supabase impossible :',error.message)).finally(()=>server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`)));
 }
-module.exports={resolve,publicState,aggregateResults,removePlayer,transferHost,lobbySummaries,activeGameSummaries,replaceSocket,scoreRound};
+module.exports={resolve,publicState,aggregateResults,removePlayer,transferHost,lobbySummaries,activeGameSummaries,replaceSocket,scoreRound,startMatch};
