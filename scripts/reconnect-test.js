@@ -13,7 +13,7 @@ const send=(client,type,payload={})=>client.ws.send(JSON.stringify({type,...payl
   send(polo,'start');await until(()=>polo.state?.phase==='bids','début de partie');send(polo,'bid',{bid:0});await until(()=>yannick.state?.turn===1,'tour de Yannick');
 
   const yannickReconnected=client();await until(()=>yannickReconnected.ws.readyState===1,'nouvelle connexion Yannick');
-  send(yannickReconnected,'join',{code:yannick.session.code,playerId:yannick.session.playerId});await until(()=>yannickReconnected.state?.turn===1,'restauration de la session');
+  send(yannickReconnected,'join',{code:yannick.session.code,playerId:yannick.session.playerId,resumeToken:yannick.session.resumeToken});await until(()=>yannickReconnected.state?.turn===1,'restauration de la session');
   yannick.ws.close();await wait(80);
   await until(()=>polo.state?.players[1].connected===true,'ancienne connexion sans effet sur la nouvelle');
   send(yannickReconnected,'bid',{bid:0});await until(()=>polo.state?.phase==='play','action après reconnexion');

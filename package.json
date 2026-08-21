@@ -6,7 +6,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test",
+    "test": "node --test test/rules.test.js",
+    "test:unit": "node --test test/rules.test.js",
+    "test:reconnect": "node scripts/reconnect-test.js",
     "generate-vapid": "node scripts/generate-vapid-keys.js"
   },
   "engines": {

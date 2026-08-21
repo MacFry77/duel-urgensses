@@ -129,6 +129,17 @@ test("l'hôte n'est pas transféré au milieu d'une partie", () => {
   assert.equal(room.hostId,'host');
 });
 
+test("après le délai de grâce, l'hôte peut être transféré pendant une partie", () => {
+  const room={status:'playing',hostId:'host',players:[{id:'host',ws:null},{id:'p2',ws:{}}],spectators:[]};
+  assert.equal(transferHost(room,{force:true}).id,'p2');
+  assert.equal(room.hostId,'p2');
+});
+
+test('les états publics exposent leur révision pour écarter les messages anciens', () => {
+  const room={code:'ABCDE',status:'lobby',hostId:'p1',revision:17,totalRounds:4,maxPlayers:6,round:1,trick:1,phase:'lobby',leader:0,turn:0,leadColor:null,played:[],message:'',chat:[],spectators:[],players:[{id:'p1',name:'Pascal',character:'Pascal',score:0,bid:null,tricks:0,dice:[],ws:{}}]};
+  assert.equal(publicState(room,'p1').revision,17);
+});
+
 test('le panneau ne publie que les défis ouverts, connectés et non complets', () => {
   const connected = {};
   const source = new Map([
