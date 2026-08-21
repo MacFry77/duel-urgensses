@@ -690,3 +690,21 @@
 .podium-chronicles h3{margin:0 0 10px;color:#f4ce70;font:900 10px/1 Georgia,serif;letter-spacing:.2em;text-align:center;text-shadow:0 2px 2px #000}
 .podium-chronicles p{margin:7px 0;padding:7px 12px;border-left:2px solid #c79a3e;background:#061713a8;color:#f2ead3;font:700 13px/1.35 Georgia,serif;text-shadow:0 1px 1px #000}
 @media(max-width:620px){.podium-chronicles{width:94%;margin-top:15px;padding:10px}.podium-chronicles p{padding:6px 8px;font-size:11px}}
+
+/* Halo universel des avatars actifs. Aucun flou CSS n'est utilisé ici :
+   son rectangle de rendu pouvait rester perceptible selon le navigateur. */
+.arena.multiplayer-arena .player-card.active .avatar-aura,
+.arena.multiplayer-arena.radial-arena>.players-grid>article.player-card.active .avatar-aura{
+  left:-38%!important;
+  right:-38%!important;
+  top:-32%!important;
+  bottom:-30%!important;
+  border-radius:50%!important;
+  background:radial-gradient(ellipse at 50% 55%,#fff7bd70 0 8%,#ffe0744f 17%,#ffc34a31 29%,#f59a2018 42%,#e8780908 53%,transparent 67%)!important;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 55%,#000 0 34%,#000d 42%,#0008 49%,#0003 57%,transparent 68%)!important;
+  mask-image:radial-gradient(ellipse at 50% 55%,#000 0 34%,#000d 42%,#0008 49%,#0003 57%,transparent 68%)!important;
+  filter:none!important;
+  animation:avatar-soft-aura 1.6s ease-in-out infinite alternate!important;
+}
+.arena.multiplayer-arena .player-card.active .character-sprite{filter:drop-shadow(0 9px 6px #000a) drop-shadow(0 0 7px #ffd76a88)!important}
+@keyframes avatar-soft-aura{from{opacity:.68}to{opacity:1}}
