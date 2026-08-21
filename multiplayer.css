@@ -729,4 +729,5 @@
   body:has(.adventure-lobby:not(.hidden)) .shell{padding-top:14px;padding-bottom:0}
   body:has(.adventure-lobby:not(.hidden)) .topbar{padding-bottom:12px}
   .panel.adventure-lobby{margin-top:10px;padding-top:22px;padding-bottom:22px}
+  .adventure-lobby .hero-copy{transform:translateY(-140px)}
 }
