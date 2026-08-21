@@ -121,10 +121,11 @@ test("l'hôte n'est pas transféré au milieu d'une partie", () => {
 test('le panneau ne publie que les défis ouverts, connectés et non complets', () => {
   const connected = {};
   const source = new Map([
-    ['OPEN', {code:'OPEN',status:'lobby',hostId:'h',totalRounds:5,maxPlayers:4,players:[{id:'h',name:'Pascal',ws:connected}],spectators:[]}],
-    ['FULL', {code:'FULL',status:'lobby',hostId:'a',totalRounds:3,maxPlayers:2,players:[{id:'a',name:'A',ws:connected},{id:'b',name:'B',ws:connected}],spectators:[]}],
-    ['PLAY', {code:'PLAY',status:'playing',hostId:'c',totalRounds:8,maxPlayers:6,players:[{id:'c',name:'C',ws:connected}],spectators:[]}],
-    ['OFF', {code:'OFF',status:'lobby',hostId:'d',totalRounds:2,maxPlayers:6,players:[{id:'d',name:'D',ws:null}],spectators:[]}]
+    ['OPEN', {code:'OPEN',status:'lobby',phase:'lobby',hostId:'h',totalRounds:5,maxPlayers:4,players:[{id:'h',name:'Pascal',ws:connected}],spectators:[]}],
+    ['FULL', {code:'FULL',status:'lobby',phase:'lobby',hostId:'a',totalRounds:3,maxPlayers:2,players:[{id:'a',name:'A',ws:connected},{id:'b',name:'B',ws:connected}],spectators:[]}],
+    ['PLAY', {code:'PLAY',status:'playing',phase:'play',hostId:'c',totalRounds:8,maxPlayers:6,players:[{id:'c',name:'C',ws:connected}],spectators:[]}],
+    ['STALE', {code:'STALE',status:'lobby',phase:'play',hostId:'s',totalRounds:8,maxPlayers:6,players:[{id:'s',name:'S',ws:connected}],spectators:[]}],
+    ['OFF', {code:'OFF',status:'lobby',phase:'lobby',hostId:'d',totalRounds:2,maxPlayers:6,players:[{id:'d',name:'D',ws:null}],spectators:[]}]
   ]);
   assert.deepEqual(lobbySummaries(source), [{code:'OPEN',host:'Pascal',players:1,maxPlayers:4,rounds:5}]);
 });

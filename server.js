@@ -187,7 +187,7 @@ const publicState = (room, viewerId) => ({
   }))
 });
 const members = room => [...room.players,...room.spectators];
-const lobbySummaries = source => [...source.values()].filter(room=>room.status==='lobby'&&members(room).some(member=>member.ws)&&room.players.length<room.maxPlayers).map(room=>{
+const lobbySummaries = source => [...source.values()].filter(room=>room.status==='lobby'&&room.phase==='lobby'&&members(room).some(member=>member.ws)&&room.players.length<room.maxPlayers).map(room=>{
   const host=members(room).find(member=>member.id===room.hostId);
   return {code:room.code,host:host?.name||'Hôte',players:room.players.length,maxPlayers:room.maxPlayers,rounds:room.totalRounds};
 });
@@ -275,7 +275,7 @@ function handle(ws, msg){
     rooms.set(roomCode,room);ws.room=roomCode;ws.playerId=playerId;send(ws,'session',{code:roomCode,playerId});broadcast(room);trackAnalytics('room_created',{roomCode,playerCount:room.players.length,rounds:room.totalRounds}).catch(error=>console.error('Salle non comptée :',error.message));notifyOpenChallenge(room,String(msg.pushEndpoint||'')).catch(error=>console.error('Alerte de défi impossible :',error.message));return;
   }
   if(msg.type==='join'){
-    const room=rooms.get(String(msg.code||'').toUpperCase());if(!room)return fail(ws,'Salle introuvable.');
+    const room=rooms.get(String(msg.code||'').toUpperCase());if(!room)return send(ws,'joinUnavailable',{message:'Ce défi n’existe plus.',canSpectate:false});
     let player=room.players.find(p=>p.id===msg.playerId), spectator=room.spectators.find(p=>p.id===msg.playerId);
     if(player){replaceSocket(player,ws);}
     else if(spectator){replaceSocket(spectator,ws);player=spectator;}
@@ -289,8 +289,8 @@ function handle(ws, msg){
         const reclaim=character&&room.players.find(p=>p.character===character&&!p.ws);
         if(reclaim){player=reclaim;replaceSocket(player,ws);}
         else{
-        if(room.status!=='lobby')return fail(ws,'La partie a déjà commencé. Rejoignez-la comme spectateur.');
-        if(room.players.length>=room.maxPlayers)return fail(ws,`Cette salle est complète (${room.maxPlayers} joueurs maximum).`);
+        if(room.status!=='lobby'||room.phase!=='lobby')return send(ws,'joinUnavailable',{message:'La partie a déjà commencé.',canSpectate:true});
+        if(room.players.length>=room.maxPlayers)return send(ws,'joinUnavailable',{message:`Cette salle est complète (${room.maxPlayers} joueurs maximum).`,canSpectate:true});
         if(room.players.some(p=>p.character===character))return fail(ws,'Ce personnage est déjà pris. Choisissez-en un autre.');
         player={id:id(),name:character,character,score:0,bid:null,tricks:0,dice:[],ws};room.players.push(player);
         }
