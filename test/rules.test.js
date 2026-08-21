@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { resolve, publicState, aggregateResults, removePlayer, transferHost, lobbySummaries, replaceSocket, scoreRound } = require('../server');
+const { resolve, publicState, aggregateResults, removePlayer, transferHost, lobbySummaries, activeGameSummaries, replaceSocket, scoreRound } = require('../server');
 
 const symbol = color => ({color, face:'symbol'});
 const flag = color => ({color, face:'flag'});
@@ -128,6 +128,15 @@ test('le panneau ne publie que les défis ouverts, connectés et non complets', 
     ['OFF', {code:'OFF',status:'lobby',phase:'lobby',hostId:'d',totalRounds:2,maxPlayers:6,players:[{id:'d',name:'D',ws:null}],spectators:[]}]
   ]);
   assert.deepEqual(lobbySummaries(source), [{code:'OPEN',host:'Pascal',players:1,maxPlayers:4,rounds:5}]);
+});
+
+test('la liste des parties en cours indique leur hôte et ignore les parties terminées', () => {
+  const connected={};const source=new Map([
+    ['LIVE',{code:'LIVE',status:'playing',phase:'play',hostId:'h',round:3,totalRounds:6,maxPlayers:4,players:[{id:'h',name:'Pascal',ws:connected},{id:'p',name:'Pierre',ws:connected}],spectators:[]}],
+    ['OVER',{code:'OVER',status:'finished',phase:'over',hostId:'o',round:6,totalRounds:6,maxPlayers:4,players:[{id:'o',name:'Olivier',ws:connected}],spectators:[]}],
+    ['OFF',{code:'OFF',status:'playing',phase:'play',hostId:'x',round:2,totalRounds:4,maxPlayers:4,players:[{id:'x',name:'X',ws:null}],spectators:[]}]
+  ]);
+  assert.deepEqual(activeGameSummaries(source),[{code:'LIVE',host:'Pascal',players:2,maxPlayers:4,round:3,totalRounds:6,spectators:0}]);
 });
 
 test("une reconnexion révoque l'ancienne socket avant de donner le contrôle à la nouvelle", () => {

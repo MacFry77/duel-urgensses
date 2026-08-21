@@ -191,7 +191,11 @@ const lobbySummaries = source => [...source.values()].filter(room=>room.status==
   const host=members(room).find(member=>member.id===room.hostId);
   return {code:room.code,host:host?.name||'Hôte',players:room.players.length,maxPlayers:room.maxPlayers,rounds:room.totalRounds};
 });
-const broadcastLobbies = () => {const lobbies=lobbySummaries(rooms);wss.clients.forEach(client=>send(client,'lobbies',{lobbies}))};
+const activeGameSummaries = source => [...source.values()].filter(room=>room.status==='playing'&&room.phase!=='over'&&members(room).some(member=>member.ws)).map(room=>{
+  const host=members(room).find(member=>member.id===room.hostId);
+  return {code:room.code,host:host?.name||'Hôte',players:room.players.length,maxPlayers:room.maxPlayers,round:room.round,totalRounds:room.totalRounds,spectators:room.spectators.filter(spectator=>spectator.ws).length};
+}).sort((a,b)=>a.host.localeCompare(b.host,'fr'));
+const broadcastLobbies = () => {const lobbies=lobbySummaries(rooms),activeGames=activeGameSummaries(rooms);wss.clients.forEach(client=>send(client,'lobbies',{lobbies,activeGames}))};
 function transferHost(room){
   if(room.status==='playing')return null;
   const current=members(room).find(member=>member.id===room.hostId);
@@ -373,10 +377,10 @@ function handle(ws, msg){
   if(msg.type==='next'&&room.phase==='result'){nextStep(room);broadcast(room);return;}
   fail(ws,'Action impossible.');
 }
-wss.on('connection',ws=>{ws.isAlive=true;send(ws,'lobbies',{lobbies:lobbySummaries(rooms)});ws.on('pong',()=>ws.isAlive=true);ws.on('message',raw=>{try{handle(ws,JSON.parse(raw));}catch(e){console.error(e);fail(ws,'Action invalide.');}});ws.on('close',()=>{const room=rooms.get(ws.room),p=room&&members(room).find(x=>x.id===ws.playerId);if(p&&p.ws===ws){p.ws=null;transferHost(room);broadcast(room);}else broadcastLobbies();});});
+wss.on('connection',ws=>{ws.isAlive=true;send(ws,'lobbies',{lobbies:lobbySummaries(rooms),activeGames:activeGameSummaries(rooms)});ws.on('pong',()=>ws.isAlive=true);ws.on('message',raw=>{try{handle(ws,JSON.parse(raw));}catch(e){console.error(e);fail(ws,'Action invalide.');}});ws.on('close',()=>{const room=rooms.get(ws.room),p=room&&members(room).find(x=>x.id===ws.playerId);if(p&&p.ws===ws){p.ws=null;transferHost(room);broadcast(room);}else broadcastLobbies();});});
 setInterval(()=>{wss.clients.forEach(ws=>{if(!ws.isAlive)return ws.terminate();ws.isAlive=false;ws.ping();});},25000).unref();
 setInterval(()=>{for(const [roomCode,room] of rooms)if(members(room).every(p=>!p.ws)){rooms.delete(roomCode);deletePersistedRoom(roomCode)}},30*60*1000).unref();
 if(require.main===module){
   restoreRooms().catch(error=>console.error('Restauration Supabase impossible :',error.message)).finally(()=>server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`)));
 }
-module.exports={resolve,publicState,aggregateResults,removePlayer,transferHost,lobbySummaries,replaceSocket,scoreRound};
+module.exports={resolve,publicState,aggregateResults,removePlayer,transferHost,lobbySummaries,activeGameSummaries,replaceSocket,scoreRound};

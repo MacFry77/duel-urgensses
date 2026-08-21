@@ -15,7 +15,7 @@
   <link rel="manifest" href="/site.webmanifest?v=3">
   <link rel="stylesheet" href="styles.css?v=5">
   <link rel="stylesheet" href="theme.css?v=5">
-  <link rel="stylesheet" href="multiplayer.css?v=51">
+  <link rel="stylesheet" href="multiplayer.css?v=52">
 </head>
 <body>
   <div id="connectionBanner" class="connection-banner hidden">RECONNEXION AU SERVEUR…</div>
@@ -90,6 +90,10 @@
         <p id="connectionStatus" class="connection-status">Connexion au serveur…</p>
         <small class="lobby-note">DÉS · AUDACE · RÈGLEMENT DE COMPTES</small>
       </div>
+      <aside class="live-games-panel" aria-labelledby="liveGamesTitle">
+        <div class="live-games-heading"><div><small>TABLES ACTIVES</small><h3 id="liveGamesTitle">PARTIES EN COURS</h3></div><b id="liveGameCount">0</b></div>
+        <div id="liveGamesList" class="live-games-list"><p>Aucune partie en cours actuellement.</p></div>
+      </aside>
     </section>
 
     <section id="waitingRoom" class="panel waiting-room hidden">
@@ -200,6 +204,6 @@
       <button id="podiumCloseButton" class="podium-secondary">VOIR LA TABLE FINALE</button>
     </div>
   </dialog>
-  <script src="game.js?v=41"></script>
+  <script src="game.js?v=42"></script>
 </body>
 </html>
