@@ -142,7 +142,21 @@ const server = http.createServer(async (req, res) => {
   if (!file.startsWith(ROOT) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
     res.writeHead(404); return res.end('Introuvable');
   }
-  res.writeHead(200, {'Content-Type': mime[path.extname(file).toLowerCase()] || 'application/octet-stream','Cache-Control':'no-cache'});
+  const stat=fs.statSync(file),extension=path.extname(file).toLowerCase();
+  const etag=`W/\"${stat.size.toString(16)}-${Math.trunc(stat.mtimeMs).toString(16)}\"`;
+  const modified=stat.mtime.toUTCString();
+  const versioned=new URL(req.url,'http://localhost').searchParams.has('v');
+  const isDocument=extension==='.html'||extension==='.webmanifest';
+  const cacheControl=isDocument
+    ? 'no-cache, max-age=0, must-revalidate'
+    : versioned
+      ? 'public, max-age=31536000, immutable'
+      : 'public, max-age=0, must-revalidate';
+  const headers={'Content-Type':mime[extension]||'application/octet-stream','Content-Length':stat.size,'Cache-Control':cacheControl,'ETag':etag,'Last-Modified':modified};
+  const notModified=req.headers['if-none-match']===etag||(!req.headers['if-none-match']&&req.headers['if-modified-since']===modified);
+  if(notModified){delete headers['Content-Length'];res.writeHead(304,headers);return res.end()}
+  res.writeHead(200,headers);
+  if(req.method==='HEAD')return res.end();
   fs.createReadStream(file).pipe(res);
 });
 const wss = new WebSocketServer({ server });
