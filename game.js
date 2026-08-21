@@ -38,7 +38,7 @@ function createRoom(){const who=identity();if(who){session=null;localStorage.rem
 function spectatorName(){return $('spectatorNameInput').value.trim().replace(/\s+/g,' ').slice(0,24)}
 function createOrganizer(){session=null;localStorage.removeItem('duel-session');send('create',{name:spectatorName(),organizer:true,rounds:Number($('roundCount').value),maxPlayers:Number($('maxPlayers').value),pushEndpoint})}
 function joinRoom(){const who=identity(),code=$('roomCodeInput').value.trim().toUpperCase();if(who&&code){session=null;localStorage.removeItem('duel-session');send('join',{...who,code})}else if(who)showError('Indiquez le code de la salle.')}
-function joinSpectatorRoom(){const code=$('roomCodeInput').value.trim().toUpperCase();if(!code)return showError('Indiquez le code de la salle.');pendingSpectatorName=spectatorName();session=null;localStorage.removeItem('duel-session');send('join',{code,spectator:true})}
+function joinSpectatorRoom(){const code=$('roomCodeInput').value.trim().toUpperCase();if(!code)return showError('Indiquez le code de la salle.');pendingSpectatorName=spectatorName();session=null;localStorage.removeItem('duel-session');send('join',{code,spectator:true,name:pendingSpectatorName})}
 function renderOpenChallenges(){
   const list=$('openChallengesList'),counter=$('openChallengeCount');if(!list||!counter)return;
   counter.textContent=String(openLobbies.length);

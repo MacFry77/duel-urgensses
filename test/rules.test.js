@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { resolve, publicState, aggregateResults, removePlayer, transferHost, lobbySummaries } = require('../server');
+const { resolve, publicState, aggregateResults, removePlayer, transferHost, lobbySummaries, replaceSocket } = require('../server');
 
 const symbol = color => ({color, face:'symbol'});
 const flag = color => ({color, face:'flag'});
@@ -117,4 +117,25 @@ test('le panneau ne publie que les défis ouverts, connectés et non complets', 
     ['OFF', {code:'OFF',status:'lobby',hostId:'d',totalRounds:2,maxPlayers:6,players:[{id:'d',name:'D',ws:null}],spectators:[]}]
   ]);
   assert.deepEqual(lobbySummaries(source), [{code:'OPEN',host:'Pascal',players:1,maxPlayers:4,rounds:5}]);
+});
+
+test("une reconnexion révoque l'ancienne socket avant de donner le contrôle à la nouvelle", () => {
+  const closed=[];
+  const previous={room:'ABCDE',playerId:'p1',close:(code,reason)=>closed.push({code,reason})};
+  const current={};
+  const player={id:'p1',ws:previous};
+  replaceSocket(player,current);
+  assert.equal(player.ws,current);
+  assert.equal(previous.room,null);
+  assert.equal(previous.playerId,null);
+  assert.deepEqual(closed,[{code:4001,reason:'Connexion remplacée'}]);
+});
+
+test('resynchroniser sur la même socket ne la ferme pas', () => {
+  let closed=false;
+  const current={close:()=>{closed=true}};
+  const player={id:'p1',ws:current};
+  replaceSocket(player,current);
+  assert.equal(closed,false);
+  assert.equal(player.ws,current);
 });

@@ -256,6 +256,14 @@ function nextStep(room){
     else{room.round++;deal(room);}
   }else{room.trick++;room.phase='play';room.played=[];room.leadColor=null;room.turn=room.leader;}
 }
+function replaceSocket(member,ws){
+  const previous=member.ws;
+  if(previous&&previous!==ws){
+    previous.room=null;previous.playerId=null;
+    try{previous.close(4001,'Connexion remplacée');}catch{}
+  }
+  member.ws=ws;
+}
 function handle(ws, msg){
   if(msg.type==='create'){
     const roomCode=code(), playerId=id();
@@ -267,8 +275,8 @@ function handle(ws, msg){
   if(msg.type==='join'){
     const room=rooms.get(String(msg.code||'').toUpperCase());if(!room)return fail(ws,'Salle introuvable.');
     let player=room.players.find(p=>p.id===msg.playerId), spectator=room.spectators.find(p=>p.id===msg.playerId);
-    if(player){player.ws=ws;}
-    else if(spectator){spectator.ws=ws;player=spectator;}
+    if(player){replaceSocket(player,ws);}
+    else if(spectator){replaceSocket(spectator,ws);player=spectator;}
     else{
       if(msg.spectator){
         if(room.spectators.length>=20)return fail(ws,'Le nombre maximal de spectateurs est atteint.');
@@ -277,7 +285,7 @@ function handle(ws, msg){
       }else{
         const character=normalizeCharacter(String(msg.character||'').slice(0,24));
         const reclaim=character&&room.players.find(p=>p.character===character&&!p.ws);
-        if(reclaim){player=reclaim;player.ws=ws;}
+        if(reclaim){player=reclaim;replaceSocket(player,ws);}
         else{
         if(room.status!=='lobby')return fail(ws,'La partie a déjà commencé. Rejoignez-la comme spectateur.');
         if(room.players.length>=room.maxPlayers)return fail(ws,`Cette salle est complète (${room.maxPlayers} joueurs maximum).`);
@@ -369,4 +377,4 @@ setInterval(()=>{for(const [roomCode,room] of rooms)if(members(room).every(p=>!p
 if(require.main===module){
   restoreRooms().catch(error=>console.error('Restauration Supabase impossible :',error.message)).finally(()=>server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`)));
 }
-module.exports={resolve,publicState,aggregateResults,removePlayer,transferHost,lobbySummaries};
+module.exports={resolve,publicState,aggregateResults,removePlayer,transferHost,lobbySummaries,replaceSocket};
