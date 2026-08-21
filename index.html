@@ -189,6 +189,16 @@
     <p class="gallery-intro">Découvrez tous les personnages disponibles avant de choisir votre champion.</p>
     <div id="galleryGrid" class="gallery-grid"></div>
   </dialog>
-  <script src="game.js?v=32"></script>
+  <dialog id="podiumDialog" class="podium-dialog">
+    <button id="closePodium" class="dialog-close" aria-label="Fermer">×</button>
+    <p class="podium-kicker">LE DUEL EST TERMINÉ</p>
+    <div id="podiumBody"></div>
+    <div class="podium-actions">
+      <button id="podiumLobbyButton" class="primary hidden">RETOURNER DANS LE SALON</button>
+      <button id="podiumNewRoomButton" class="podium-secondary hidden">NOUVELLE SALLE</button>
+      <button id="podiumCloseButton" class="podium-secondary">VOIR LA TABLE FINALE</button>
+    </div>
+  </dialog>
+  <script src="game.js?v=33"></script>
 </body>
 </html>

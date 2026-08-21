@@ -180,7 +180,7 @@ const publicState = (room, viewerId) => ({
     // Pendant les paris, chacun ne voit que son propre choix. Les paris sont
     // révélés simultanément lorsque le dernier joueur a choisi.
     bid:room.phase==='bids'&&p.id!==viewerId?null:p.bid,
-    tricks:p.tricks,connected:!!p.ws,
+    tricks:p.tricks,totalTricks:p.totalTricks||0,connected:!!p.ws,
     dice:p.id===viewerId?p.dice:p.dice.map(()=>({hidden:true}))
   }))
 });
