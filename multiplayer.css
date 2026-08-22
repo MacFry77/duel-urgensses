@@ -755,14 +755,18 @@
 /* Dés physiques à six faces : dans la main, leurs trois résultats possibles
    sont visibles en perspective. Après le lancer, seule la face tirée demeure. */
 .die.red{--die-tone:var(--red)}.die.yellow{--die-tone:var(--yellow)}.die.violet{--die-tone:var(--violet)}.die.gray{--die-tone:var(--gray)}.die.brown{--die-tone:var(--brown)}.die.green{--die-tone:var(--green)}.die.blue{--die-tone:var(--blue)}
-.die-pips{display:grid;width:76%;height:76%;grid-template:repeat(3,1fr)/repeat(3,1fr);place-items:center}
-.die-pips i{display:block;width:42%;aspect-ratio:1;border-radius:50%;background:transparent}
-.die-pips i.on{background:#fff9e8;box-shadow:0 1px 1px #0009,inset 0 -1px #8c795d77}
+.die:not(.multiface):not(.back){overflow:hidden;border:1px solid #fff6d77a;border-radius:10px;box-shadow:inset 3px 3px 0 #ffffff2e,inset -7px -8px 0 #07120d26,3px 5px 0 #1324384d}
+.die:not(.multiface):not(.back):before{content:"";position:absolute;inset:3px;border:1px solid #ffffff20;border-radius:7px;pointer-events:none}
+.die-pips{display:grid;width:82%;height:82%;grid-template:repeat(3,1fr)/repeat(3,1fr);place-items:center;filter:drop-shadow(0 1px 0 #281d1680)}
+.die-pips i{display:block;width:68%;aspect-ratio:1;border-radius:50%;background:transparent}
+.die-pips i.on{background:radial-gradient(circle at 38% 30%,#fffdf4 0 34%,#f4e7c9 66%,#bda882 100%);box-shadow:0 1px 1px #000a,inset 0 1px 1px #fff}
+.die:not(.multiface)>.flag{font-size:34px;line-height:1;color:#fffdf1;text-shadow:0 2px 1px #0008}
+.die:not(.multiface)>.med-icon{width:72%;height:72%;filter:drop-shadow(0 2px 1px #0007)}
 .die.multiface{width:76px;height:76px;padding:0;border:0;background:transparent!important;box-shadow:none!important;overflow:visible;perspective:180px}
 .die.multiface.clickable:hover{outline:0}
 .die-cube{position:relative;display:block;width:100%;height:100%;filter:drop-shadow(3px 5px 1px #07130f75);transition:transform .16s,filter .16s}
 .die.multiface.clickable:hover .die-cube{transform:translateY(-5px) scale(1.035);filter:drop-shadow(3px 7px 2px #07130f99) drop-shadow(0 0 6px #ffd76a)}
-.die-cube-art{position:absolute;inset:-19%;width:138%;height:138%;object-fit:contain;pointer-events:none;image-rendering:pixelated}
+.die-cube-art{position:absolute;inset:-19%;width:138%;height:138%;object-fit:contain;pointer-events:none;image-rendering:pixelated;filter:none}
 .played-slot>.die{animation:die-lands .28s cubic-bezier(.2,.8,.25,1)}
 @keyframes die-lands{from{opacity:.35;transform:translateY(-12px) rotate(-7deg) scale(.88)}to{opacity:1;transform:none}}
 .game[data-phase="bids"] .dice-rack{opacity:1!important;filter:none!important}
