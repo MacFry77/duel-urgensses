@@ -758,18 +758,27 @@
 .die-pips{display:grid;width:76%;height:76%;grid-template:repeat(3,1fr)/repeat(3,1fr);place-items:center}
 .die-pips i{display:block;width:42%;aspect-ratio:1;border-radius:50%;background:transparent}
 .die-pips i.on{background:#fff9e8;box-shadow:0 1px 1px #0009,inset 0 -1px #8c795d77}
-.die.multiface{padding:0;border:0;background:transparent!important;box-shadow:none!important;overflow:visible;perspective:180px}
+.die.multiface{width:76px;height:76px;padding:0;border:0;background:transparent!important;box-shadow:none!important;overflow:visible;perspective:180px}
 .die.multiface.clickable:hover{outline:0}
 .die-cube{position:relative;display:block;width:100%;height:100%;filter:drop-shadow(3px 5px 1px #07130f75);transition:transform .16s,filter .16s}
 .die.multiface.clickable:hover .die-cube{transform:translateY(-5px) scale(1.035);filter:drop-shadow(3px 7px 2px #07130f99) drop-shadow(0 0 6px #ffd76a)}
-.cube-face{position:absolute;display:grid;place-items:center;overflow:hidden;border:1px solid #fff8ceaa;background:var(--die-tone);color:white;box-shadow:inset -5px -6px #0002,inset 2px 2px #fff3}
-.cube-front{left:7%;top:31%;width:62%;height:62%;border-radius:7px 3px 5px 7px}
-.cube-top{left:12%;top:3%;width:62%;height:38%;clip-path:polygon(18% 0,100% 22%,82% 100%,0 76%);padding:4% 9% 8% 6%}
-.cube-side{left:67%;top:22%;width:31%;height:63%;clip-path:polygon(0 13%,100% 0,91% 83%,0 100%);padding:12% 2% 8% 8%}
-.cube-face .die-pips{width:76%;height:76%}.cube-top .die-pips{width:66%;height:76%;transform:skewX(-10deg)}.cube-side .die-pips{width:78%;height:70%;transform:skewY(-8deg)}
-.cube-face .med-icon{width:70%;height:70%}.cube-top .med-icon{transform:scale(.78) skewX(-10deg)}.cube-side .med-icon{transform:scale(.75) skewY(-8deg)}
-.cube-face .flag{font-size:clamp(12px,1.8vw,24px);line-height:1;text-shadow:0 2px #0006}.cube-top .flag,.cube-side .flag{transform:scale(.78)}
+.die-cube-art{position:absolute;inset:-14%;width:128%;height:128%;object-fit:contain;pointer-events:none;image-rendering:pixelated}
+.die.multiface.red .die-cube-art{filter:sepia(1) saturate(7) hue-rotate(315deg) brightness(.76)}
+.die.multiface.yellow .die-cube-art{filter:sepia(1) saturate(5) hue-rotate(355deg) brightness(.98)}
+.die.multiface.violet .die-cube-art{filter:sepia(1) saturate(6) hue-rotate(220deg) brightness(.65)}
+.die.multiface.gray .die-cube-art{filter:grayscale(1) brightness(.72)}
+.die.multiface.brown .die-cube-art{filter:sepia(1) saturate(4) hue-rotate(338deg) brightness(.58)}
+.die.multiface.green .die-cube-art{filter:sepia(1) saturate(5) hue-rotate(68deg) brightness(.65)}
+.die.multiface.blue .die-cube-art{filter:sepia(1) saturate(6) hue-rotate(155deg) brightness(.66)}
+.cube-mark{position:absolute;z-index:2;display:grid;place-items:center;color:#fff;pointer-events:none;filter:drop-shadow(0 1px 1px #000b)}
+.cube-front-mark{left:18%;top:39%;width:40%;height:44%}
+.cube-top-mark{left:30%;top:16%;width:37%;height:24%;transform:skewX(-13deg) scaleY(.78)}
+.cube-side-mark{left:66%;top:37%;width:20%;height:40%;transform:skewY(-10deg) scaleX(.82)}
+.cube-mark .die-pips{width:72%;height:72%}.cube-top-mark .die-pips,.cube-side-mark .die-pips{width:70%;height:70%}
+.cube-mark .die-pips i.on{background:#fffdf1;box-shadow:0 1px 1px #000b}
+.cube-mark .med-icon{width:68%;height:68%}.cube-top-mark .med-icon,.cube-side-mark .med-icon{transform:scale(.78)}
+.cube-mark .flag{font-size:clamp(12px,1.6vw,21px);line-height:1;text-shadow:0 2px #0008}.cube-top-mark .flag,.cube-side-mark .flag{transform:scale(.8)}
 .played-slot>.die{animation:die-lands .28s cubic-bezier(.2,.8,.25,1)}
 @keyframes die-lands{from{opacity:.35;transform:translateY(-12px) rotate(-7deg) scale(.88)}to{opacity:1;transform:none}}
 .game[data-phase="bids"] .dice-rack{opacity:1!important;filter:none!important}
-@media(max-width:620px){.mobile-stage .die.multiface{width:62px;height:58px}.mobile-stage .die.multiface.clickable{animation:none}.mobile-stage .die.multiface.clickable .die-cube{animation:mobile-cube-call 1.2s ease-in-out infinite alternate}@keyframes mobile-cube-call{to{transform:translateY(-4px);filter:drop-shadow(3px 7px 2px #07130f99) drop-shadow(0 0 7px #ffd76a)}}}
+@media(max-width:620px){.mobile-stage .die.multiface{width:88px;height:88px}.mobile-stage .die.multiface.clickable{animation:none}.mobile-stage .die.multiface.clickable .die-cube{animation:mobile-cube-call 1.2s ease-in-out infinite alternate}@keyframes mobile-cube-call{to{transform:translateY(-4px);filter:drop-shadow(3px 7px 2px #07130f99) drop-shadow(0 0 7px #ffd76a)}}}

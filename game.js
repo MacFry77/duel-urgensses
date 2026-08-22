@@ -17,16 +17,18 @@ if(invitedCode&&session?.code!==invitedCode){session=null;localStorage.removeIte
 const special=c=>['brown','green','blue'].includes(c);const normalizedCharacter=name=>name==='Adéla'?'Adela':name;const characterFile=name=>CHARACTERS.find(c=>c[0]===normalizedCharacter(name))?.[1]||CHARACTERS[0][1];
 const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const PIP_CELLS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8],7:[0,2,3,4,5,6,8]};
+const CLIENT_DIE_FACES={violet:[1,1,2,2,3,3],yellow:[3,3,4,4,5,5],red:[5,5,6,6,7,7],gray:['flag','flag','flag',1,1,6],brown:['symbol','symbol','symbol','symbol','flag','flag'],green:['symbol','symbol','symbol','symbol','flag','flag'],blue:['symbol','symbol','symbol','symbol','flag','flag']};
 function pipHTML(value){const filled=new Set(PIP_CELLS[Number(value)]||[]);return `<span class="die-pips" aria-label="${value}">${Array.from({length:9},(_,index)=>`<i class="${filled.has(index)?'on':''}"></i>`).join('')}</span>`}
 function dieFaceHTML(face,color){if(face==='symbol'&&special(color))return icons[color];if(face==='flag')return '<span class="flag" aria-label="Drapeau blanc">⚑</span>';return pipHTML(face)}
-function diePossibilities(d){if(special(d.color))return ['symbol','symbol','flag'];return [...new Set(Array.isArray(d.faces)?d.faces:[])].slice(0,3)}
-function dieDescription(d){const counts=(Array.isArray(d.faces)?d.faces:[]).reduce((map,face)=>(map.set(face,(map.get(face)||0)+1),map),new Map());return [...counts].map(([face,count])=>`${count} face${count>1?'s':''} ${face==='symbol'?COLORS[d.color]:face==='flag'?'drapeau blanc':face}`).join(', ')}
+function knownDieFaces(d){return Array.isArray(d.faces)&&d.faces.length?d.faces:(CLIENT_DIE_FACES[d.color]||[])}
+function diePossibilities(d){return [...new Set(knownDieFaces(d))].slice(0,3)}
+function dieDescription(d){const counts=knownDieFaces(d).reduce((map,face)=>(map.set(face,(map.get(face)||0)+1),map),new Map());return [...counts].map(([face,count])=>`${count} face${count>1?'s':''} ${face==='symbol'?COLORS[d.color]:face==='flag'?'drapeau blanc':face}`).join(', ')}
 function dieHTML(d,clickable=false){
   if(d.hidden)return `<button class="die back" disabled></button>`;
   const action=clickable?`data-die="${d.id}"`:'';
-  if(d.face==null&&Array.isArray(d.faces)){
+  if(d.face==null&&knownDieFaces(d).length){
     const possibilities=diePossibilities(d),faces=[possibilities[0],possibilities[1]??possibilities[0],possibilities[2]??possibilities[0]];
-    return `<button class="die multiface ${d.color} ${clickable?'clickable':''}" ${action} title="Faces possibles : ${esc(dieDescription(d))}" aria-label="Dé ${COLORS[d.color]}, ${esc(dieDescription(d))}"><span class="die-cube"><span class="cube-face cube-front">${dieFaceHTML(faces[0],d.color)}</span><span class="cube-face cube-top">${dieFaceHTML(faces[1],d.color)}</span><span class="cube-face cube-side">${dieFaceHTML(faces[2],d.color)}</span></span></button>`;
+    return `<button class="die multiface ${d.color} ${clickable?'clickable':''}" ${action} title="Faces possibles : ${esc(dieDescription(d))}" aria-label="Dé ${COLORS[d.color]}, ${esc(dieDescription(d))}"><span class="die-cube"><img class="die-cube-art" src="assets/dice/die-3d-blank-v1.png" alt=""><span class="cube-mark cube-front-mark">${dieFaceHTML(faces[0],d.color)}</span><span class="cube-mark cube-top-mark">${dieFaceHTML(faces[1],d.color)}</span><span class="cube-mark cube-side-mark">${dieFaceHTML(faces[2],d.color)}</span></span></button>`;
   }
   return `<button class="die ${d.color} ${clickable?'clickable':''}" ${action}>${dieFaceHTML(d.face,d.color)}</button>`
 }
