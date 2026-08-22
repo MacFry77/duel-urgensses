@@ -18,7 +18,7 @@ const special=c=>['brown','green','blue'].includes(c);const normalizedCharacter=
 const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const PIP_CELLS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8],7:[0,2,3,4,5,6,8]};
 const CLIENT_DIE_FACES={violet:[1,1,2,2,3,3],yellow:[3,3,4,4,5,5],red:[5,5,6,6,7,7],gray:['flag','flag','flag',1,1,6],brown:['symbol','symbol','symbol','symbol','flag','flag'],green:['symbol','symbol','symbol','symbol','flag','flag'],blue:['symbol','symbol','symbol','symbol','flag','flag']};
-const MULTIFACE_DIE_SPRITES={red:'multiface-red-v2.png',yellow:'multiface-yellow-v2.png',violet:'multiface-violet-v2.png',gray:'multiface-gray-v2.png',brown:'multiface-brown-v2.png',green:'multiface-green-v2.png',blue:'multiface-blue-v2.png'};
+const MULTIFACE_DIE_SPRITES={red:'multiface-red-v3.png',yellow:'multiface-yellow-v2.png',violet:'multiface-violet-v2.png',gray:'multiface-gray-v2.png',brown:'multiface-brown-v2.png',green:'multiface-green-v2.png',blue:'multiface-blue-v2.png'};
 function pipHTML(value){const filled=new Set(PIP_CELLS[Number(value)]||[]);return `<span class="die-pips" aria-label="${value}">${Array.from({length:9},(_,index)=>`<i class="${filled.has(index)?'on':''}"></i>`).join('')}</span>`}
 function dieFaceHTML(face,color){if(face==='symbol'&&special(color))return icons[color];if(face==='flag')return '<span class="flag" aria-label="Drapeau blanc">⚑</span>';return pipHTML(face)}
 function knownDieFaces(d){return Array.isArray(d.faces)&&d.faces.length?d.faces:(CLIENT_DIE_FACES[d.color]||[])}
