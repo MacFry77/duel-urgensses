@@ -47,8 +47,8 @@ test('le décompte mémorise les faits servant aux chroniques de fin', () => {
     {bid:4,tricks:3,score:20}
   ]};
   scoreRound(room);
-  assert.deepEqual(room.players[0],{bid:0,tricks:0,score:30,totalBid:0,boldestBid:0,exactRounds:1,zeroSuccesses:1});
-  assert.deepEqual(room.players[1],{bid:4,tricks:3,score:20,totalBid:4,boldestBid:4,missedRounds:1});
+  assert.deepEqual(room.players[0],{bid:0,tricks:0,score:30,totalBid:0,boldestBid:0,exactRounds:1,zeroSuccesses:1,roundHistory:[{round:3,bid:0,tricks:0,exact:true,scoreBefore:0,points:30,scoreAfter:30}]});
+  assert.deepEqual(room.players[1],{bid:4,tricks:3,score:20,totalBid:4,boldestBid:4,missedRounds:1,roundHistory:[{round:3,bid:4,tricks:3,exact:false,scoreBefore:20,points:0,scoreAfter:20}]});
 });
 
 test('les paris adverses restent secrets puis sont révélés ensemble', () => {
