@@ -108,7 +108,7 @@ async function notifyHostOfJoin(room,joiningPlayer){
 }
 const roomSnapshot = room => ({
   code:room.code,status:room.status,hostId:room.hostId,totalRounds:room.totalRounds,maxPlayers:room.maxPlayers,
-  revision:Number(room.revision)||0,
+  revision:Number(room.revision)||0,chronicleSeed:room.chronicleSeed||'',
   round:room.round,trick:room.trick,phase:room.phase,leader:room.leader,turn:room.turn,
   leadColor:room.leadColor,played:room.played,message:room.message||'',chat:room.chat,
   resultRecorded:room.resultRecorded,
@@ -151,7 +151,7 @@ async function restoreRooms(){
   const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_active_games?select=code,state&updated_at=gte.${encodeURIComponent(since)}`,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`},signal:AbortSignal.timeout(5000)});
   if(!response.ok){console.error('Restauration des parties impossible :',response.status);return;}
   const rows=await response.json();
-  for(const row of rows){const saved=row.state;if(!saved||saved.code!==row.code||!Array.isArray(saved.players)||!Array.isArray(saved.spectators))continue;saved.revision=Math.max(0,Number(saved.revision)||0);saved.maxPlayers=Math.max(2,Math.min(6,Number(saved.maxPlayers)||6));saved.emptySince=Date.now();saved.joinAlertsEnabled=Boolean(saved.joinAlertsEnabled);saved.hostPushEndpoint=String(saved.hostPushEndpoint||'');saved.players=saved.players.map(player=>({...player,resumeToken:player.resumeToken||null,disconnectedAt:Date.now(),exactRounds:Number(player.exactRounds)||0,zeroSuccesses:Number(player.zeroSuccesses)||0,missedRounds:Number(player.missedRounds)||0,totalBid:Number(player.totalBid)||0,boldestBid:Number(player.boldestBid)||0,roundHistory:Array.isArray(player.roundHistory)?player.roundHistory:[],visible:false,ws:null}));saved.spectators=saved.spectators.map(spectator=>({...spectator,resumeToken:spectator.resumeToken||null,disconnectedAt:Date.now(),visible:false,ws:null}));saved.chat=Array.isArray(saved.chat)?saved.chat:[];saved.played=Array.isArray(saved.played)?saved.played:[];rooms.set(saved.code,saved)}
+  for(const row of rows){const saved=row.state;if(!saved||saved.code!==row.code||!Array.isArray(saved.players)||!Array.isArray(saved.spectators))continue;saved.revision=Math.max(0,Number(saved.revision)||0);saved.chronicleSeed=String(saved.chronicleSeed||crypto.randomUUID());saved.maxPlayers=Math.max(2,Math.min(6,Number(saved.maxPlayers)||6));saved.emptySince=Date.now();saved.joinAlertsEnabled=Boolean(saved.joinAlertsEnabled);saved.hostPushEndpoint=String(saved.hostPushEndpoint||'');saved.players=saved.players.map(player=>({...player,resumeToken:player.resumeToken||null,disconnectedAt:Date.now(),exactRounds:Number(player.exactRounds)||0,zeroSuccesses:Number(player.zeroSuccesses)||0,missedRounds:Number(player.missedRounds)||0,totalBid:Number(player.totalBid)||0,boldestBid:Number(player.boldestBid)||0,roundHistory:Array.isArray(player.roundHistory)?player.roundHistory:[],visible:false,ws:null}));saved.spectators=saved.spectators.map(spectator=>({...spectator,resumeToken:spectator.resumeToken||null,disconnectedAt:Date.now(),visible:false,ws:null}));saved.chat=Array.isArray(saved.chat)?saved.chat:[];saved.played=Array.isArray(saved.played)?saved.played:[];rooms.set(saved.code,saved)}
   if(rows.length)console.log(`${rooms.size} partie(s) restaurée(s) depuis Supabase.`);
 }
 const aggregateResults = rows => [...rows.reduce((map,row)=>{const character=normalizeCharacter(row.character),value=map.get(character)||{character,games:0,wins:0,losses:0,draws:0,points:0,tricks:0};value.games++;value[row.result==='win'?'wins':row.result==='draw'?'draws':'losses']++;value.points+=Number(row.score)||0;value.tricks+=Number(row.tricks)||0;map.set(character,value);return map;},new Map()).values()].map(r=>({...r,winRate:Math.round(r.wins/r.games*100)})).sort((a,b)=>b.points-a.points||b.wins-a.wins||b.winRate-a.winRate||a.character.localeCompare(b.character,'fr'));
@@ -212,7 +212,7 @@ const roll = die => {
   return die;
 };
 const publicState = (room, viewerId) => ({
-  code: room.code, status: room.status, hostId: room.hostId, revision:Number(room.revision)||0,totalRounds: room.totalRounds,maxPlayers:room.maxPlayers,
+  code: room.code, status: room.status, hostId: room.hostId, revision:Number(room.revision)||0,chronicleSeed:room.chronicleSeed||'',totalRounds: room.totalRounds,maxPlayers:room.maxPlayers,
   round: room.round, trick: room.trick, phase: room.phase, leader: room.leader,
   turn: room.turn, leadColor: room.leadColor, played: room.played,
   message: room.message || '', viewerId,
@@ -270,7 +270,7 @@ function deal(room) {
   room.phase='bids';room.turn=0;room.trick=1;room.played=[];room.leadColor=null;room.message='';
 }
 function startMatch(room){
-  room.status='playing';room.resultRecorded=false;
+  room.status='playing';room.resultRecorded=false;room.chronicleSeed=crypto.randomUUID();
   room.players.forEach(p=>{p.score=0;p.totalTricks=0;p.exactRounds=0;p.zeroSuccesses=0;p.missedRounds=0;p.totalBid=0;p.boldestBid=0;p.roundHistory=[]});
   room.round=1;room.leader=0;deal(room);
 }

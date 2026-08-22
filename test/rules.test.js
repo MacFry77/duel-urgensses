@@ -41,6 +41,15 @@ test('une revanche remet les scores à zéro et redémarre avec les mêmes joueu
   assert.ok(room.players.every(player=>player.dice.length===1));
 });
 
+test('chaque nouveau match reçoit une nouvelle graine de chronique', () => {
+  const room={status:'finished',phase:'over',resultRecorded:true,round:2,players:[
+    {id:'a',score:40,dice:[]},{id:'b',score:20,dice:[]}
+  ]};
+  startMatch(room);const firstSeed=room.chronicleSeed;
+  room.status='finished';room.phase='over';startMatch(room);
+  assert.ok(firstSeed);assert.notEqual(room.chronicleSeed,firstSeed);
+});
+
 test('le décompte mémorise les faits servant aux chroniques de fin', () => {
   const room={round:3,players:[
     {bid:0,tricks:0,score:0},

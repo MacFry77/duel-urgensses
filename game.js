@@ -175,7 +175,7 @@ function rareChronicles(ranked,seed){
 }
 function matchChronicles(ranked){
   if(!ranked.length)return[];
-  const notes=[],best=ranked[0].score,winners=ranked.filter(player=>player.score===best),seed=`${state.code}:${state.totalRounds}:${ranked.map(player=>`${player.name}-${player.score}-${player.totalTricks||0}`).join('|')}`;
+  const notes=[],best=ranked[0].score,winners=ranked.filter(player=>player.score===best),matchDetails=ranked.map(player=>`${player.name}-${player.score}-${player.totalTricks||0}-${player.exactRounds||0}-${player.zeroSuccesses||0}-${(player.roundHistory||[]).map(round=>`${round.bid}/${round.tricks}/${round.points}`).join('.')}`).join('|'),seed=`${state.chronicleSeed||state.code}:${state.totalRounds}:${matchDetails}`;
   if(winners.length>1){const names=winners.map(player=>player.name).join(' et ');notes.push(chroniclePick([
     `⚔️ ${names} refusent de se départager : même score, même droit de fanfaronner.`,`🤝 ${names} signent une paix armée. Personne ne gagne, personne ne baisse les yeux.`,`⚖️ ${names} terminent dos à dos. Le contentieux est officiellement reporté.`,`🪢 ${names} restent noués au classement. Même le juge réclame une revanche.`,`🗿 ${names} affichent le même score : le temple n’a pas réussi à choisir son champion.`
   ],`${seed}:tie`))}else{const winner=ranked[0];notes.push(chroniclePick([
