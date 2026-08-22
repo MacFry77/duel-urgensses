@@ -758,14 +758,14 @@
    Windows, la largeur reste généreuse mais la hauteur CSS disponible chute.
    On réduit toute la scène de façon homogène pour garder le formulaire dans
    la fenêtre, sans modifier la présentation des grands écrans. */
-@media(min-width:851px) and (max-height:900px){
-  body:has(.adventure-lobby:not(.hidden)) .shell{max-width:1340px;min-height:auto;zoom:.88}
+@media(min-width:851px) and (max-height:1200px){
+  body:has(.adventure-lobby:not(.hidden)) .shell{max-width:1370px;min-height:auto;zoom:.86}
 }
-@media(min-width:851px) and (max-height:780px){
-  body:has(.adventure-lobby:not(.hidden)) .shell{max-width:1550px;zoom:.76}
+@media(min-width:851px) and (max-height:1050px){
+  body:has(.adventure-lobby:not(.hidden)) .shell{max-width:1640px;zoom:.72}
 }
-@media(min-width:851px) and (max-height:680px){
-  body:has(.adventure-lobby:not(.hidden)) .shell{max-width:1735px;zoom:.68}
+@media(min-width:851px) and (max-height:850px){
+  body:has(.adventure-lobby:not(.hidden)) .shell{max-width:1900px;zoom:.62}
 }
 
 .die.red{--die-tone:var(--red)}.die.yellow{--die-tone:var(--yellow)}.die.violet{--die-tone:var(--violet)}.die.gray{--die-tone:var(--gray)}.die.brown{--die-tone:var(--brown)}.die.green{--die-tone:var(--green)}.die.blue{--die-tone:var(--blue)}
