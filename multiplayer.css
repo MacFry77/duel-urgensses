@@ -764,10 +764,10 @@
 .die:not(.multiface)>.med-icon{width:72%;height:72%;filter:drop-shadow(0 2px 1px #0007)}
 .die.multiface{width:76px;height:76px;padding:0;border:0;background:transparent!important;box-shadow:none!important;overflow:visible;perspective:180px}
 .die.multiface.clickable,.die.multiface.clickable:hover,.die.multiface.clickable:focus,.die.multiface.clickable:focus-visible{outline:0!important;outline-offset:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
-.die-cube{position:relative;display:block;width:100%;height:100%;filter:drop-shadow(3px 5px 1px #07130f75);transition:transform .16s,filter .16s}
-.die.multiface.clickable .die-cube{filter:drop-shadow(3px 5px 1px #07130f75) drop-shadow(0 0 4px #ffd76ab8)}
-.die.multiface.clickable:hover .die-cube{transform:translateY(-5px) scale(1.035);filter:drop-shadow(3px 7px 2px #07130f99) drop-shadow(0 0 6px #ffd76a)}
-.die-cube-art{position:absolute;inset:-19%;width:138%;height:138%;object-fit:contain;pointer-events:none;image-rendering:pixelated;filter:none}
+.die-cube{position:relative;display:block;width:100%;height:100%;filter:drop-shadow(2px 4px 1px #07130f68);transition:transform .16s,filter .16s}
+.die.multiface.clickable .die-cube{filter:drop-shadow(2px 4px 1px #07130f68) drop-shadow(0 0 3px #ffd76a94)}
+.die.multiface.clickable:hover .die-cube{transform:translateY(-5px) scale(1.035);filter:drop-shadow(2px 6px 2px #07130f80) drop-shadow(0 0 5px #ffd76ab8)}
+.die-cube-art{position:absolute;inset:-14px;width:calc(100% + 28px);height:calc(100% + 28px);object-fit:contain;pointer-events:none;image-rendering:auto;backface-visibility:hidden;transform:translateZ(0);filter:none}
 .played-slot>.die{animation:die-lands .28s cubic-bezier(.2,.8,.25,1)}
 @keyframes die-lands{from{opacity:.35;transform:translateY(-12px) rotate(-7deg) scale(.88)}to{opacity:1;transform:none}}
 .game[data-phase="bids"] .dice-rack{opacity:1!important;filter:none!important}
