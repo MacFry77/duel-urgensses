@@ -759,13 +759,27 @@
    On réduit toute la scène de façon homogène pour garder le formulaire dans
    la fenêtre, sans modifier la présentation des grands écrans. */
 @media(min-width:851px) and (max-height:1200px){
-  body:has(.adventure-lobby:not(.hidden)) .shell{max-width:1370px;min-height:auto;zoom:.86}
+  body:has(.adventure-lobby:not(.hidden)) .shell{max-width:1285px;min-height:auto;zoom:.92}
 }
 @media(min-width:851px) and (max-height:1050px){
-  body:has(.adventure-lobby:not(.hidden)) .shell{max-width:1640px;zoom:.72}
+  body:has(.adventure-lobby:not(.hidden)) .shell{max-width:1340px;zoom:.88}
+  .adventure-lobby .lobby-actions{gap:8px}
+  .adventure-lobby .stone-panel{padding:27px 28px 24px}
+  .adventure-lobby .stone-panel::before{inset:28px 22px 34px}
+  .adventure-lobby .form-title{margin:-3px 12px 11px;padding:8px 14px 9px}
+  .adventure-lobby .lobby-actions label{padding-top:1px}
+  .adventure-lobby .lobby-actions select,.adventure-lobby .lobby-actions input{margin-top:4px;padding-top:9px;padding-bottom:9px}
+  .adventure-lobby .lobby-choice{gap:6px}
+  .adventure-lobby .lobby-choice button{min-height:36px}
+  .adventure-lobby .spectator-name-label{gap:3px}
+  .open-challenges{margin-top:7px;padding:8px 10px}
+  .open-challenges-head{margin-bottom:5px;padding-bottom:5px}
+  .open-challenges-list{max-height:72px}
+  .push-controls{grid-template-columns:1fr 1fr;margin-top:6px;padding-top:6px}
+  .push-controls small{grid-column:1/-1}
 }
 @media(min-width:851px) and (max-height:850px){
-  body:has(.adventure-lobby:not(.hidden)) .shell{max-width:1900px;zoom:.62}
+  body:has(.adventure-lobby:not(.hidden)) .shell{max-width:1440px;zoom:.82}
 }
 
 .die.red{--die-tone:var(--red)}.die.yellow{--die-tone:var(--yellow)}.die.violet{--die-tone:var(--violet)}.die.gray{--die-tone:var(--gray)}.die.brown{--die-tone:var(--brown)}.die.green{--die-tone:var(--green)}.die.blue{--die-tone:var(--blue)}
