@@ -386,7 +386,7 @@ function handle(ws, msg){
   }
   if(msg.type==='chat'){
     const text=String(msg.text||'').trim();if(!text)return send(ws,'chatRejected',{actionId:msg.actionId,message:'Le message est vide.'});if(text.length>MAX_CHAT_LENGTH)return send(ws,'chatRejected',{actionId:msg.actionId,message:`Le message dépasse ${MAX_CHAT_LENGTH} caractères.`});
-    const entry={id:id(),sender:actor.name,text,time:Date.now(),role:spectator?'spectator':'player'};room.chat.push(entry);if(room.chat.length>100)room.chat.shift();room.revision=(Number(room.revision)||0)+1;
+    const entry={id:id(),sender:actor.name,text,time:Date.now(),role:spectator?'spectator':'player',clientActionId:String(msg.actionId||'').slice(0,120)};room.chat.push(entry);if(room.chat.length>100)room.chat.shift();room.revision=(Number(room.revision)||0)+1;
     members(room).forEach(member=>member.ws&&send(member.ws,'chat',{entry,revision:room.revision}));send(ws,'chatAccepted',{actionId:msg.actionId,entryId:entry.id});queuePersist(room);return;
   }
   if(msg.type==='renameSpectator'){
