@@ -15,7 +15,7 @@
   <link rel="manifest" href="/site.webmanifest?v=3">
   <link rel="stylesheet" href="styles.css?v=5">
   <link rel="stylesheet" href="theme.css?v=5">
-  <link rel="stylesheet" href="multiplayer.css?v=61">
+  <link rel="stylesheet" href="multiplayer.css?v=62">
 </head>
 <body>
   <div id="connectionBanner" class="connection-banner hidden">RECONNEXION AU SERVEUR…</div>
@@ -163,7 +163,7 @@
       <button id="chatHeader" class="chat-header"><span>💬 CHAT DE LA SALLE</span><b id="chatBadge"></b><i>⌄</i></button>
       <div id="chatBody" class="chat-body">
         <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
-        <form id="chatForm" class="chat-form"><textarea id="chatInput" maxlength="1000" rows="1" autocomplete="off" placeholder="Écrire un message… puis Entrée"></textarea></form>
+        <form id="chatForm" class="chat-form"><textarea id="chatInput" maxlength="1000" rows="1" autocomplete="off" enterkeyhint="send" placeholder="Écrire un message… puis Entrée"></textarea></form>
       </div>
     </aside>
   </main>
@@ -180,6 +180,20 @@
       <li><b>Urgentiste</b> bat Chirurgien, <b>Chirurgien</b> bat Anesthésiste, <b>Anesthésiste</b> bat Urgentiste. Si les trois apparaissent, <b>Urgentiste gagne</b>.</li>
       <li><b>Décompte des points :</b> <b>Pari exact d’au moins 1 pli :</b> 20 points par pli remporté. <b>Pari exact de 0 pli :</b> 10 points multipliés par le numéro de la manche. Pari incorrect : aucun point perdu. Aucun bonus.</li>
     </ol>
+    <section class="dice-rules" aria-labelledby="diceRulesTitle">
+      <h3 id="diceRulesTitle">Composition des 36 dés</h3>
+      <p>Chaque dé possède six faces. Les valeurs répétées indiquent la probabilité réelle d’obtenir chaque résultat.</p>
+      <div class="dice-rules-grid">
+        <article class="dice-rule special brown"><b>1 dé Urgentiste</b><span>4 faces stéthoscope · 2 drapeaux blancs</span></article>
+        <article class="dice-rule special green"><b>3 dés Chirurgien</b><span>4 faces bistouri · 2 drapeaux blancs par dé</span></article>
+        <article class="dice-rule special blue"><b>2 dés Anesthésiste</b><span>4 faces seringue · 2 drapeaux blancs par dé</span></article>
+        <article class="dice-rule red"><b>7 dés rouges</b><span>2 faces ⚄ · 2 faces ⚅ · 2 faces à 7 points</span></article>
+        <article class="dice-rule yellow"><b>7 dés jaunes</b><span>2 faces ⚂ · 2 faces ⚃ · 2 faces ⚄</span></article>
+        <article class="dice-rule violet"><b>8 dés violets</b><span>2 faces ⚀ · 2 faces ⚁ · 2 faces ⚂</span></article>
+        <article class="dice-rule gray"><b>8 dés gris</b><span>3 drapeaux blancs · 2 faces ⚀ · 1 face ⚅</span></article>
+      </div>
+      <p class="dice-rules-note">Un drapeau blanc vaut toujours zéro. Les dés spéciaux suivent la relation Urgentiste → Chirurgien → Anesthésiste → Urgentiste décrite ci-dessus.</p>
+    </section>
     <div class="legend" id="legend"></div>
   </dialog>
   <dialog id="leaderboardDialog" class="leaderboard-dialog">
@@ -207,6 +221,6 @@
       <button id="podiumCloseButton" class="podium-secondary">VOIR LA TABLE FINALE</button>
     </div>
   </dialog>
-  <script src="game.js?v=47"></script>
+  <script src="game.js?v=48"></script>
 </body>
 </html>
