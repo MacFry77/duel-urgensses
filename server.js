@@ -11,6 +11,17 @@ const ROOT = __dirname;
 const COLORS = ['red', 'yellow', 'violet', 'gray', 'brown', 'green', 'blue'];
 const SPECIAL = new Set(['brown', 'green', 'blue']);
 const COUNTS = { red: 7, yellow: 7, violet: 8, gray: 8, brown: 1, green: 3, blue: 2 };
+// Faces exactes des dés physiques. Un dé reste secret et non lancé dans la
+// main du joueur ; le serveur choisit une de ces six faces au moment du jeu.
+const DIE_FACES = {
+  violet:[1,1,2,2,3,3],
+  yellow:[3,3,4,4,5,5],
+  red:[5,5,6,6,7,7],
+  gray:['flag','flag','flag',1,1,6],
+  brown:['symbol','symbol','symbol','symbol','flag','flag'],
+  green:['symbol','symbol','symbol','symbol','flag','flag'],
+  blue:['symbol','symbol','symbol','symbol','flag','flag']
+};
 const rooms = new Map();
 const DATA_DIR = path.join(ROOT, 'data');
 const LEADERBOARD_FILE = process.env.LEADERBOARD_FILE || path.join(DATA_DIR, 'leaderboard.json');
@@ -151,7 +162,7 @@ async function restoreRooms(){
   const response=await fetch(`${SUPABASE_URL}/rest/v1/duel_active_games?select=code,state&updated_at=gte.${encodeURIComponent(since)}`,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`},signal:AbortSignal.timeout(5000)});
   if(!response.ok){console.error('Restauration des parties impossible :',response.status);return;}
   const rows=await response.json();
-  for(const row of rows){const saved=row.state;if(!saved||saved.code!==row.code||!Array.isArray(saved.players)||!Array.isArray(saved.spectators))continue;saved.revision=Math.max(0,Number(saved.revision)||0);saved.chronicleSeed=String(saved.chronicleSeed||crypto.randomUUID());saved.maxPlayers=Math.max(2,Math.min(6,Number(saved.maxPlayers)||6));saved.emptySince=Date.now();saved.joinAlertsEnabled=Boolean(saved.joinAlertsEnabled);saved.hostPushEndpoint=String(saved.hostPushEndpoint||'');saved.players=saved.players.map(player=>({...player,resumeToken:player.resumeToken||null,disconnectedAt:Date.now(),exactRounds:Number(player.exactRounds)||0,zeroSuccesses:Number(player.zeroSuccesses)||0,missedRounds:Number(player.missedRounds)||0,totalBid:Number(player.totalBid)||0,boldestBid:Number(player.boldestBid)||0,roundHistory:Array.isArray(player.roundHistory)?player.roundHistory:[],visible:false,ws:null}));saved.spectators=saved.spectators.map(spectator=>({...spectator,resumeToken:spectator.resumeToken||null,disconnectedAt:Date.now(),visible:false,ws:null}));saved.chat=Array.isArray(saved.chat)?saved.chat:[];saved.played=Array.isArray(saved.played)?saved.played:[];rooms.set(saved.code,saved)}
+  for(const row of rows){const saved=row.state;if(!saved||saved.code!==row.code||!Array.isArray(saved.players)||!Array.isArray(saved.spectators))continue;saved.revision=Math.max(0,Number(saved.revision)||0);saved.chronicleSeed=String(saved.chronicleSeed||crypto.randomUUID());saved.maxPlayers=Math.max(2,Math.min(6,Number(saved.maxPlayers)||6));saved.emptySince=Date.now();saved.joinAlertsEnabled=Boolean(saved.joinAlertsEnabled);saved.hostPushEndpoint=String(saved.hostPushEndpoint||'');saved.players=saved.players.map(player=>({...player,resumeToken:player.resumeToken||null,disconnectedAt:Date.now(),exactRounds:Number(player.exactRounds)||0,zeroSuccesses:Number(player.zeroSuccesses)||0,missedRounds:Number(player.missedRounds)||0,totalBid:Number(player.totalBid)||0,boldestBid:Number(player.boldestBid)||0,roundHistory:Array.isArray(player.roundHistory)?player.roundHistory:[],dice:Array.isArray(player.dice)?player.dice.map(die=>({...die,faces:facesFor(die.color),face:null})):[],visible:false,ws:null}));saved.spectators=saved.spectators.map(spectator=>({...spectator,resumeToken:spectator.resumeToken||null,disconnectedAt:Date.now(),visible:false,ws:null}));saved.chat=Array.isArray(saved.chat)?saved.chat:[];saved.played=Array.isArray(saved.played)?saved.played.map(play=>({...play,die:{...play.die,faces:facesFor(play.die.color)}})):[];rooms.set(saved.code,saved)}
   if(rows.length)console.log(`${rooms.size} partie(s) restaurée(s) depuis Supabase.`);
 }
 const aggregateResults = rows => [...rows.reduce((map,row)=>{const character=normalizeCharacter(row.character),value=map.get(character)||{character,games:0,wins:0,losses:0,draws:0,points:0,tricks:0};value.games++;value[row.result==='win'?'wins':row.result==='draw'?'draws':'losses']++;value.points+=Number(row.score)||0;value.tricks+=Number(row.tricks)||0;map.set(character,value);return map;},new Map()).values()].map(r=>({...r,winRate:Math.round(r.wins/r.games*100)})).sort((a,b)=>b.points-a.points||b.wins-a.wins||b.winRate-a.winRate||a.character.localeCompare(b.character,'fr'));
@@ -204,11 +215,12 @@ const shuffle = array => {
   for (let i=result.length-1;i>0;i--) { const j=crypto.randomInt(i+1); [result[i],result[j]]=[result[j],result[i]]; }
   return result;
 };
-const makePool = () => shuffle(Object.entries(COUNTS).flatMap(([color,n]) => Array.from({length:n},()=>({id:id(),color,face:null}))));
+const facesFor = color => [...(DIE_FACES[color]||[])];
+const makePool = () => shuffle(Object.entries(COUNTS).flatMap(([color,n]) => Array.from({length:n},()=>({id:id(),color,faces:facesFor(color),face:null}))));
 const roll = die => {
-  if (SPECIAL.has(die.color)) die.face = crypto.randomInt(6) < 4 ? 'symbol' : 'flag';
-  else if (die.color === 'gray') die.face = crypto.randomInt(2) ? crypto.randomInt(1,7) : 'flag';
-  else die.face = crypto.randomInt(1,7);
+  const faces=Array.isArray(die.faces)&&die.faces.length===6?die.faces:facesFor(die.color);
+  die.faces=facesFor(die.color);
+  die.face=faces[crypto.randomInt(faces.length)];
   return die;
 };
 const publicState = (room, viewerId) => ({
@@ -266,7 +278,7 @@ const currentPlayer = room => room.players[room.turn];
 
 function deal(room) {
   const pool=makePool();
-  room.players.forEach(p=>{p.dice=pool.splice(0,room.round).map(roll);p.bid=null;p.tricks=0;});
+  room.players.forEach(p=>{p.dice=pool.splice(0,room.round);p.bid=null;p.tricks=0;});
   room.phase='bids';room.turn=0;room.trick=1;room.played=[];room.leadColor=null;room.message='';
 }
 function startMatch(room){
@@ -457,6 +469,7 @@ function handle(ws, msg){
   }
   if(msg.type==='play'&&room.phase==='play'){
     const die=legalDice(room,player).find(d=>d.id===msg.dieId);if(!die)return fail(ws,'Ce dé ne peut pas être joué.');
+    roll(die);
     player.dice=player.dice.filter(d=>d.id!==die.id);
     if(!room.leadColor&&!SPECIAL.has(die.color))room.leadColor=die.color;
     room.played.push({player:room.turn,die});
@@ -500,4 +513,4 @@ setInterval(()=>{
 if(require.main===module){
   restoreRooms().catch(error=>console.error('Restauration Supabase impossible :',error.message)).finally(()=>server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`)));
 }
-module.exports={resolve,publicState,aggregateResults,removePlayer,transferHost,lobbySummaries,activeGameSummaries,replaceSocket,scoreRound,startMatch};
+module.exports={resolve,publicState,aggregateResults,removePlayer,transferHost,lobbySummaries,activeGameSummaries,replaceSocket,scoreRound,startMatch,facesFor,makePool,roll};

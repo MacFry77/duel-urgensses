@@ -1,10 +1,26 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { resolve, publicState, aggregateResults, removePlayer, transferHost, lobbySummaries, activeGameSummaries, replaceSocket, scoreRound, startMatch } = require('../server');
+const { resolve, publicState, aggregateResults, removePlayer, transferHost, lobbySummaries, activeGameSummaries, replaceSocket, scoreRound, startMatch, facesFor, makePool, roll } = require('../server');
 
 const symbol = color => ({color, face:'symbol'});
 const flag = color => ({color, face:'flag'});
 const played = dice => ({played:dice.map((die, player) => ({player, die}))});
+
+test('chaque couleur respecte exactement les six faces de la notice', () => {
+  assert.deepEqual(facesFor('violet'),[1,1,2,2,3,3]);
+  assert.deepEqual(facesFor('yellow'),[3,3,4,4,5,5]);
+  assert.deepEqual(facesFor('red'),[5,5,6,6,7,7]);
+  assert.deepEqual(facesFor('gray'),['flag','flag','flag',1,1,6]);
+  for(const color of ['brown','green','blue'])assert.deepEqual(facesFor(color),['symbol','symbol','symbol','symbol','flag','flag']);
+});
+
+test('les dés distribués restent non lancés jusqu’au moment où ils sont joués', () => {
+  const pool=makePool();
+  assert.equal(pool.length,36);
+  assert.ok(pool.every(die=>die.face===null&&die.faces.length===6));
+  const die=pool[0],allowed=facesFor(die.color);roll(die);
+  assert.ok(allowed.includes(die.face));
+});
 
 for (const [winner, loser, label] of [
   ['brown', 'green', 'Urgentiste bat Chirurgien'],

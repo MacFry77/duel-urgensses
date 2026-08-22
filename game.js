@@ -16,7 +16,20 @@ const invitedCode=new URLSearchParams(location.search).get('join')?.trim().toUpp
 if(invitedCode&&session?.code!==invitedCode){session=null;localStorage.removeItem('duel-session')}
 const special=c=>['brown','green','blue'].includes(c);const normalizedCharacter=name=>name==='Adéla'?'Adela':name;const characterFile=name=>CHARACTERS.find(c=>c[0]===normalizedCharacter(name))?.[1]||CHARACTERS[0][1];
 const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function dieHTML(d,clickable=false){if(d.hidden)return `<button class="die back" disabled></button>`;const face=special(d.color)&&d.face==='symbol'?icons[d.color]:d.face==='flag'?'<span class="flag">⚑</span>':`<span class="value">${d.face??'?'}</span>`;return `<button class="die ${d.color} ${clickable?'clickable':''}" ${clickable?`data-die="${d.id}"`:''}>${face}</button>`}
+const PIP_CELLS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8],7:[0,2,3,4,5,6,8]};
+function pipHTML(value){const filled=new Set(PIP_CELLS[Number(value)]||[]);return `<span class="die-pips" aria-label="${value}">${Array.from({length:9},(_,index)=>`<i class="${filled.has(index)?'on':''}"></i>`).join('')}</span>`}
+function dieFaceHTML(face,color){if(face==='symbol'&&special(color))return icons[color];if(face==='flag')return '<span class="flag" aria-label="Drapeau blanc">⚑</span>';return pipHTML(face)}
+function diePossibilities(d){if(special(d.color))return ['symbol','symbol','flag'];return [...new Set(Array.isArray(d.faces)?d.faces:[])].slice(0,3)}
+function dieDescription(d){const counts=(Array.isArray(d.faces)?d.faces:[]).reduce((map,face)=>(map.set(face,(map.get(face)||0)+1),map),new Map());return [...counts].map(([face,count])=>`${count} face${count>1?'s':''} ${face==='symbol'?COLORS[d.color]:face==='flag'?'drapeau blanc':face}`).join(', ')}
+function dieHTML(d,clickable=false){
+  if(d.hidden)return `<button class="die back" disabled></button>`;
+  const action=clickable?`data-die="${d.id}"`:'';
+  if(d.face==null&&Array.isArray(d.faces)){
+    const possibilities=diePossibilities(d),faces=[possibilities[0],possibilities[1]??possibilities[0],possibilities[2]??possibilities[0]];
+    return `<button class="die multiface ${d.color} ${clickable?'clickable':''}" ${action} title="Faces possibles : ${esc(dieDescription(d))}" aria-label="Dé ${COLORS[d.color]}, ${esc(dieDescription(d))}"><span class="die-cube"><span class="cube-face cube-front">${dieFaceHTML(faces[0],d.color)}</span><span class="cube-face cube-top">${dieFaceHTML(faces[1],d.color)}</span><span class="cube-face cube-side">${dieFaceHTML(faces[2],d.color)}</span></span></button>`;
+  }
+  return `<button class="die ${d.color} ${clickable?'clickable':''}" ${action}>${dieFaceHTML(d.face,d.color)}</button>`
+}
 function bidGestureHTML(player,index,compact=false){
   if(!Number.isInteger(player.bid))return '<b>—</b>';
   const side=index%2?'from-right':'from-left',character=normalizedCharacter(player.character||player.name),feminine=FEMININE_HAND_CHARACTERS.has(character),dedicatedFeminine=feminine&&player.bid>5;
