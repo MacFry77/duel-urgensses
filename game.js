@@ -232,7 +232,46 @@ function matchChronicles(ranked){
   if(winners.length>1){const names=winners.map(player=>player.name).join(' et ');notes.push(chroniclePick([
     `⚔️ ${names} refusent de se départager : même score, même droit de fanfaronner.`,`🤝 ${names} signent une paix armée. Personne ne gagne, personne ne baisse les yeux.`,`⚖️ ${names} terminent dos à dos. Le contentieux est officiellement reporté.`,`🪢 ${names} restent noués au classement. Même le juge réclame une revanche.`,`🗿 ${names} affichent le même score : le temple n’a pas réussi à choisir son champion.`
   ],`${seed}:tie`))}else{const winner=ranked[0];notes.push(chroniclePick([
-    `🏆 ${winner.name} transforme ${winner.score} points en prise de pouvoir parfaitement assumée.`,`👑 ${winner.name} s’installe au sommet avec ${winner.score} points et refuse poliment d’en redescendre.`,`⚡ ${winner.name} frappe fort : ${winner.score} points et une victoire sans anesthésie.`,`🧭 ${winner.name} trouve seul le chemin du trésor avec ${winner.score} points.`,`🥁 ${winner.name} conclut le duel à ${winner.score} points. Les tambours peuvent commencer.`,`🦜 ${winner.name} empoche ${winner.score} points et le droit officiel de fanfaronner.`
+    `🏆 ${winner.name} transforme ${winner.score} points en prise de pouvoir parfaitement assumée.`,
+    `👑 ${winner.name} s’installe au sommet avec ${winner.score} points et refuse poliment d’en redescendre.`,
+    `⚡ ${winner.name} frappe fort : ${winner.score} points et une victoire sans anesthésie.`,
+    `🧭 ${winner.name} trouve seul le chemin du trésor avec ${winner.score} points.`,
+    `🥁 ${winner.name} conclut le duel à ${winner.score} points. Les tambours peuvent commencer.`,
+    `🦜 ${winner.name} empoche ${winner.score} points et le droit officiel de fanfaronner.`,
+    `🗿 Le temple désigne ${winner.name} : ${winner.score} points et pas l’ombre d’un recours possible.`,
+    `🔥 ${winner.name} quitte l’arène avec ${winner.score} points. Derrière, le parchemin fume encore.`,
+    `🗺️ Toutes les routes du duel finissent chez ${winner.name}, propriétaire officiel de ${winner.score} points.`,
+    `⚔️ ${winner.name} range les dés après avoir gravé ${winner.score} points dans la pierre.`,
+    `🌴 ${winner.name} atteint la cime avec ${winner.score} points. La vue sur les perdants est excellente.`,
+    `🎺 ${winner.name} signe ${winner.score} points. Quelqu’un avait commandé une entrée triomphale ?`,
+    `🧨 Avec ${winner.score} points, ${winner.name} fait sauter le verrou du classement.`,
+    `🦁 ${winner.name} rugit à ${winner.score} points. L’arène fait semblant de ne pas avoir sursauté.`,
+    `🏴‍☠️ ${winner.name} repart avec ${winner.score} points et le classement sous le bras.`,
+    `🪄 ${winner.name} change une poignée de dés en ${winner.score} points. Le truc ne sera pas expliqué.`,
+    `🎯 ${winner.name} plante son drapeau au sommet avec ${winner.score} points. Celui-ci ne vaut pas zéro.`,
+    `🛕 ${winner.name} ouvre la chambre du trésor grâce à un code très simple : ${winner.score} points.`,
+    `🦅 ${winner.name} survole le classement et atterrit sur ${winner.score} points, sans froisser une plume.`,
+    `🍾 ${winner.name} met ${winner.score} points au frais. La célébration, elle, peut commencer.`,
+    `📯 ${winner.name} termine à ${winner.score} points. Le héraut réclame maintenant le silence pour fanfaronner.`,
+    `🪙 ${winner.name} fait sonner ${winner.score} points sur la table. Le compte est malheureusement exact.`,
+    `🚩 ${winner.name} conquiert le sommet avec ${winner.score} points et commence déjà à redécorer.`,
+    `🌋 ${winner.name} entre en éruption jusqu’à ${winner.score} points. Le classement est classé zone sinistrée.`,
+    `🎲 Les dés ont parlé : ${winner.name}, ${winner.score} points, et aucune possibilité de les soudoyer après coup.`,
+    `🧱 ${winner.name} bâtit une victoire de ${winner.score} points, homologuée résistante aux contestations.`,
+    `🔔 ${winner.name} fait retentir ${winner.score} points. Le duel est clos, les jalousies restent ouvertes.`,
+    `🧳 ${winner.name} remplit sa valise de ${winner.score} points et laisse les miettes à l’arène.`,
+    `🦩 ${winner.name} gagne avec ${winner.score} points et un équilibre que les autres cherchent encore.`,
+    `📜 Le verdict tombe : ${winner.name} triomphe avec ${winner.score} points. Le parchemin refuse toute rature.`,
+    `🛡️ ${winner.name} défend ${winner.score} points jusqu’au coup de gong final. Forteresse validée.`,
+    `🚀 ${winner.name} décolle avec ${winner.score} points. Le reste du classement attend le prochain vol.`,
+    `🗝️ ${winner.name} trouve la clé du duel et ouvre la victoire à ${winner.score} points.`,
+    `🎭 Rideau sur le duel : ${winner.name} salue le public avec ${winner.score} points.`,
+    `🌟 ${winner.name} accroche ${winner.score} points au firmament. Toute ressemblance avec de la modestie serait fortuite.`,
+    `🧿 ${winner.name} fixe les dés, les dés cèdent : ${winner.score} points et la première place.`,
+    `🏹 ${winner.name} décoche ${winner.score} points en plein centre du classement.`,
+    `🐉 ${winner.name} garde jalousement un trésor de ${winner.score} points. Approche déconseillée.`,
+    `🧪 La formule de ${winner.name} produit exactement ${winner.score} points et une victoire légèrement instable.`,
+    `🪶 ${winner.name} signe le registre des vainqueurs avec ${winner.score} points et une modestie illisible.`
   ],`${seed}:winner`))}
   notes.push(...rareChronicles(ranked,seed).slice(0,2));
   const zero=[...ranked].sort((a,b)=>(b.zeroSuccesses||0)-(a.zeroSuccesses||0))[0],exact=[...ranked].sort((a,b)=>(b.exactRounds||0)-(a.exactRounds||0))[0],tricks=[...ranked].sort((a,b)=>(b.totalTricks||0)-(a.totalTricks||0))[0],bold=[...ranked].sort((a,b)=>(b.boldestBid||0)-(a.boldestBid||0))[0];
