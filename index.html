@@ -15,7 +15,7 @@
   <link rel="manifest" href="/site.webmanifest?v=3">
   <link rel="stylesheet" href="styles.css?v=5">
   <link rel="stylesheet" href="theme.css?v=5">
-  <link rel="stylesheet" href="multiplayer.css?v=66">
+  <link rel="stylesheet" href="multiplayer.css?v=67">
 </head>
 <body>
   <div id="connectionBanner" class="connection-banner hidden">RECONNEXION AU SERVEUR…</div>
@@ -215,6 +215,19 @@
     <p class="gallery-intro">Découvrez tous les personnages disponibles avant de choisir votre champion.</p>
     <div id="galleryGrid" class="gallery-grid"></div>
   </dialog>
+  <dialog id="spectatorIdentityDialog" class="spectator-identity-dialog">
+    <button id="closeSpectatorIdentity" class="dialog-close" aria-label="Annuler">×</button>
+    <p class="kicker">ENTRÉE DANS LES TRIBUNES</p>
+    <h2>Comment souhaitez-vous apparaître ?</h2>
+    <p class="spectator-identity-copy">Votre nom est facultatif. Il sera affiché devant vos messages dans le chat de la partie.</p>
+    <label for="listedSpectatorName">NOM DU SPECTATEUR <small>(FACULTATIF)</small></label>
+    <input id="listedSpectatorName" maxlength="24" autocomplete="nickname" placeholder="Votre nom">
+    <p id="spectatorIdentityError" class="spectator-identity-error hidden">Renseignez un nom, ou choisissez l’entrée anonyme.</p>
+    <div class="spectator-identity-actions">
+      <button id="confirmNamedSpectator" class="primary">ENTRER AVEC CE NOM</button>
+      <button id="confirmAnonymousSpectator" class="spectator-anonymous-button">ENTRER ANONYMEMENT</button>
+    </div>
+  </dialog>
   <dialog id="podiumDialog" class="podium-dialog">
     <button id="closePodium" class="dialog-close" aria-label="Fermer">×</button>
     <p class="podium-kicker">LE DUEL EST TERMINÉ</p>
@@ -226,6 +239,6 @@
       <button id="podiumCloseButton" class="podium-secondary">VOIR LA TABLE FINALE</button>
     </div>
   </dialog>
-  <script src="game.js?v=50"></script>
+  <script src="game.js?v=52"></script>
 </body>
 </html>
