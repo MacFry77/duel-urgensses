@@ -105,6 +105,18 @@ test('le Hall of Fame classe d’abord selon les points cumulés', () => {
   assert.equal(rows[1].wins, 2);
 });
 
+test('l’indice de performance récompense les points par manche avec une pondération initiale', () => {
+  const rows=aggregateResults([
+    {character:'Fanny',result:'win',score:160,tricks:5,rounds:8},
+    {character:'Fanny',result:'win',score:160,tricks:5,rounds:8},
+    {character:'Catoire d’Arabie',result:'loss',score:120,tricks:4,rounds:4}
+  ]);
+  const fanny=rows.find(row=>row.character==='Fanny'),catoire=rows.find(row=>row.character==='Catoire d’Arabie');
+  assert.equal(fanny.pointsPerRound,20);
+  assert.equal(catoire.pointsPerRound,30);
+  assert.ok(catoire.performance>fanny.performance);
+});
+
 test('exclure le joueur dont c’est le tour transmet la main au suivant', () => {
   const room = {
     status:'playing',phase:'play',round:2,trick:1,turn:1,leader:0,leadColor:null,played:[],

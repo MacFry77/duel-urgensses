@@ -15,7 +15,7 @@
   <link rel="manifest" href="/site.webmanifest?v=3">
   <link rel="stylesheet" href="styles.css?v=5">
   <link rel="stylesheet" href="theme.css?v=5">
-  <link rel="stylesheet" href="multiplayer.css?v=67">
+  <link rel="stylesheet" href="multiplayer.css?v=68">
 </head>
 <body>
   <div id="connectionBanner" class="connection-banner hidden">RECONNEXION AU SERVEUR…</div>
@@ -205,7 +205,8 @@
     <button id="closeLeaderboard" class="dialog-close">×</button>
     <p class="kicker">LES LÉGENDES DE L’ARÈNE</p>
     <h2>Hall of Fame</h2>
-    <p class="leaderboard-intro">Le classement récompense d’abord le total de points accumulés par chaque personnage, quel que soit le navigateur utilisé.</p>
+    <div class="leaderboard-tabs" role="tablist" aria-label="Type de classement"><button id="leaderboardTotalTab" class="selected" role="tab" aria-selected="true">TOTAL</button><button id="leaderboardPerformanceTab" role="tab" aria-selected="false">PERFORMANCE</button></div>
+    <p id="leaderboardIntro" class="leaderboard-intro">Le classement historique récompense le total de points accumulés par chaque personnage.</p>
     <div id="leaderboardBody"></div>
   </dialog>
   <dialog id="galleryDialog" class="gallery-dialog">
@@ -239,6 +240,6 @@
       <button id="podiumCloseButton" class="podium-secondary">VOIR LA TABLE FINALE</button>
     </div>
   </dialog>
-  <script src="game.js?v=52"></script>
+  <script src="game.js?v=53"></script>
 </body>
 </html>

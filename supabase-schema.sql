@@ -5,8 +5,12 @@ create table if not exists public.duel_results (
   result text not null check (result in ('win', 'loss', 'draw')),
   score integer not null default 0,
   tricks integer not null default 0,
+  rounds integer not null default 8,
   played_at timestamptz not null default now()
 );
+
+alter table public.duel_results
+  add column if not exists rounds integer not null default 8;
 
 create index if not exists duel_results_played_at_idx on public.duel_results (played_at desc);
 create index if not exists duel_results_character_idx on public.duel_results (character);
