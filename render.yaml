@@ -5,9 +5,17 @@ services:
     plan: free
     region: frankfurt
     buildCommand: npm install
-    startCommand: npm start
+    startCommand: node security-proxy.js
     healthCheckPath: /
     envVars:
+      - key: INTERNAL_PORT
+        value: 3100
+      - key: PUBLIC_ORIGIN
+        value: https://duel-urgensses.onrender.com
+      - key: ADMIN_USER
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
       - key: VAPID_PUBLIC_KEY
         sync: false
       - key: VAPID_PRIVATE_KEY
