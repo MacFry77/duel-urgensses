@@ -279,11 +279,20 @@ function scheduleHostTransfer(room){
 }
 const fail = (ws, message) => send(ws,'error',{message});
 const currentPlayer = room => room.players[room.turn];
+const nextClockwise = (room, from=room.turn) => room.players.length ? (from+1)%room.players.length : 0;
+function nextClockwiseUnbid(room,from=room.turn){
+  let candidate=from;
+  for(let step=0;step<room.players.length;step++){
+    candidate=nextClockwise(room,candidate);
+    if(!Number.isInteger(room.players[candidate]?.bid))return candidate;
+  }
+  return from;
+}
 
 function deal(room) {
   const pool=makePool();
   room.players.forEach(p=>{p.dice=pool.splice(0,room.round);p.bid=null;p.tricks=0;});
-  room.phase='bids';room.turn=0;room.trick=1;room.played=[];room.leadColor=null;room.message='';
+  room.phase='bids';room.turn=room.leader;room.trick=1;room.played=[];room.leadColor=null;room.message='';
 }
 function startMatch(room){
   room.status='playing';room.resultRecorded=false;room.chronicleSeed=crypto.randomUUID();
@@ -468,7 +477,8 @@ function handle(ws, msg){
   if(msg.type==='bid'&&room.phase==='bids'){
     const bid=Number(msg.bid);if(!Number.isInteger(bid)||bid<0||bid>room.round)return fail(ws,'Pari invalide.');
     player.bid=bid;
-    if(room.turn<room.players.length-1)room.turn++;else{room.phase='play';room.turn=room.leader;}
+    if(room.players.every(candidate=>Number.isInteger(candidate.bid))){room.phase='play';room.turn=room.leader;}
+    else room.turn=nextClockwiseUnbid(room,room.turn);
     broadcast(room);return;
   }
   if(msg.type==='play'&&room.phase==='play'){
@@ -478,7 +488,7 @@ function handle(ws, msg){
     if(!room.leadColor&&!SPECIAL.has(die.color))room.leadColor=die.color;
     room.played.push({player:room.turn,die});
     if(room.played.length===room.players.length){const winner=resolve(room);room.players[winner].tricks++;room.players[winner].totalTricks=(room.players[winner].totalTricks||0)+1;room.leader=winner;room.turn=winner;room.phase='result';}
-    else room.turn=(room.turn+1)%room.players.length;
+    else room.turn=nextClockwise(room,room.turn);
     broadcast(room);return;
   }
   if(msg.type==='next'&&room.phase==='result'){nextStep(room);broadcast(room,{lists:room.phase==='over'});return;}
@@ -517,4 +527,4 @@ setInterval(()=>{
 if(require.main===module){
   restoreRooms().catch(error=>console.error('Restauration Supabase impossible :',error.message)).finally(()=>server.listen(PORT,()=>console.log(`Duel Urgensses écoute sur http://localhost:${PORT}`)));
 }
-module.exports={resolve,publicState,aggregateResults,removePlayer,transferHost,lobbySummaries,activeGameSummaries,replaceSocket,scoreRound,startMatch,facesFor,makePool,roll};
+module.exports={resolve,publicState,aggregateResults,removePlayer,transferHost,lobbySummaries,activeGameSummaries,replaceSocket,scoreRound,startMatch,facesFor,makePool,roll,nextClockwise};

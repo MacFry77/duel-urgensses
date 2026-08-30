@@ -44,10 +44,10 @@ function bidsAreRevealed(){return state.phase!=='bids'&&state.players.length>0&&
 function shouldShowBidReveal(){return bidsAreRevealed()&&state.phase==='play'&&state.trick===1&&state.played.length===0}
 function bidRevealHTML(mobile=false){return `<div class="${mobile?'mobile-bid-reveal':'bid-reveal-grid'}">${state.players.map((player,index)=>`<div class="revealed-bid"><span>${esc(player.name)}</span>${bidGestureHTML(player,index)}</div>`).join('')}</div>`}
 function avatarSideForSeat(index,playerCount){
-  // Dans l'arène à trois, l'ordre DOM est centre, gauche, droite : la parité
-  // ne correspond donc pas à la position visuelle des deux joueurs du bas.
-  if(playerCount===3)return index===2?'right-avatar':'left-avatar';
-  return index%2?'right-avatar':'left-avatar';
+  // Les joueurs sont disposés dans l'ordre horaire. Les avatars placés à
+  // droite sont retournés vers la table, ceux de gauche regardent à droite.
+  const rightSeats={3:[1],4:[1,2],5:[1,2],6:[1,2,3]};
+  return rightSeats[playerCount]?.includes(index)?'right-avatar':'left-avatar';
 }
 function connect(){
   if(sessionSuperseded)return;clearTimeout(reconnectTimer);const attempt=++connectionNumber,protocol=location.protocol==='https:'?'wss':'ws';

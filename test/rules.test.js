@@ -1,10 +1,17 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { resolve, publicState, aggregateResults, removePlayer, transferHost, lobbySummaries, activeGameSummaries, replaceSocket, scoreRound, startMatch, facesFor, makePool, roll } = require('../server');
+const { resolve, publicState, aggregateResults, removePlayer, transferHost, lobbySummaries, activeGameSummaries, replaceSocket, scoreRound, startMatch, facesFor, makePool, roll, nextClockwise } = require('../server');
 
 const symbol = color => ({color, face:'symbol'});
 const flag = color => ({color, face:'flag'});
 const played = dice => ({played:dice.map((die, player) => ({player, die}))});
+
+test('le tour suit toujours le même sens horaire et boucle sans inversion', () => {
+  const room={players:[{id:'a'},{id:'b'},{id:'c'},{id:'d'}]};
+  const order=[];let turn=0;
+  for(let step=0;step<8;step++){order.push(turn);turn=nextClockwise(room,turn)}
+  assert.deepEqual(order,[0,1,2,3,0,1,2,3]);
+});
 
 test('chaque couleur respecte exactement les six faces de la notice', () => {
   assert.deepEqual(facesFor('violet'),[1,1,2,2,3,3]);

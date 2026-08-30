@@ -536,14 +536,14 @@
   /* Trois joueurs : un sommet et deux adversaires à la base de l'ellipse. */
   .radial-arena[data-player-count="3"]>.table{top:74%!important;width:clamp(350px,35%,410px)!important}
   .radial-arena[data-player-count="3"]>.players-grid>article:nth-child(1){left:50%;top:148px;transform:translateX(-50%)}
-  .radial-arena[data-player-count="3"]>.players-grid>article:nth-child(2){left:28px;bottom:30px}
-  .radial-arena[data-player-count="3"]>.players-grid>article:nth-child(3){right:28px;bottom:30px}
+  .radial-arena[data-player-count="3"]>.players-grid>article:nth-child(2){right:28px;bottom:30px}
+  .radial-arena[data-player-count="3"]>.players-grid>article:nth-child(3){left:28px;bottom:30px}
 
   /* Quatre joueurs : les cartes occupent les quatre quarts de l'arène. */
   .radial-arena[data-player-count="4"]>.players-grid>article:nth-child(1){left:24px;top:155px}
   .radial-arena[data-player-count="4"]>.players-grid>article:nth-child(2){right:24px;top:155px}
-  .radial-arena[data-player-count="4"]>.players-grid>article:nth-child(3){left:24px;bottom:26px}
-  .radial-arena[data-player-count="4"]>.players-grid>article:nth-child(4){right:24px;bottom:26px}
+  .radial-arena[data-player-count="4"]>.players-grid>article:nth-child(3){right:24px;bottom:26px}
+  .radial-arena[data-player-count="4"]>.players-grid>article:nth-child(4){left:24px;bottom:26px}
 
   /* Cinq et six joueurs : cartes plus compactes et avatars fondus dans le
      haut de leur parchemin afin de conserver une table centrale dégagée. */
@@ -599,29 +599,29 @@
   .radial-arena:is([data-player-count="5"],[data-player-count="6"]) .dice-rack{min-height:45px!important;gap:6px!important}
   .radial-arena:is([data-player-count="5"],[data-player-count="6"]) .player-head h3{font-size:17px!important}
 
-  /* Cinq joueurs : quatre angles et un siège central au sommet. */
-  .radial-arena[data-player-count="5"]>.players-grid>article:nth-child(1){left:24px;top:180px}
+  /* Cinq joueurs : départ au sommet, puis progression horaire. */
+  .radial-arena[data-player-count="5"]>.players-grid>article:nth-child(1){left:50%;top:72px;transform:translateX(-50%)}
   .radial-arena[data-player-count="5"]>.players-grid>article:nth-child(2){right:24px;top:180px}
-  .radial-arena[data-player-count="5"]>.players-grid>article:nth-child(3){left:24px;bottom:26px}
-  .radial-arena[data-player-count="5"]>.players-grid>article:nth-child(4){right:24px;bottom:26px}
-  .radial-arena[data-player-count="5"]>.players-grid>article:nth-child(5){left:50%;top:72px;transform:translateX(-50%)}
-  .arena.multiplayer-arena.radial-arena[data-player-count="5"]>.players-grid>article:nth-child(5){
+  .radial-arena[data-player-count="5"]>.players-grid>article:nth-child(3){right:24px;bottom:26px}
+  .radial-arena[data-player-count="5"]>.players-grid>article:nth-child(4){left:24px;bottom:26px}
+  .radial-arena[data-player-count="5"]>.players-grid>article:nth-child(5){left:24px;top:180px}
+  .arena.multiplayer-arena.radial-arena[data-player-count="5"]>.players-grid>article:nth-child(1){
     width:190px!important;
     min-height:180px!important;
     padding:8px!important;
   }
-  .arena.multiplayer-arena.radial-arena[data-player-count="5"]>.players-grid>article:nth-child(5) .avatar-zone{
+  .arena.multiplayer-arena.radial-arena[data-player-count="5"]>.players-grid>article:nth-child(1) .avatar-zone{
     top:-68px!important;
     width:98px!important;
     height:94px!important;
   }
-  .arena.multiplayer-arena.radial-arena[data-player-count="5"]>.players-grid>article:nth-child(5) .character-sprite{
+  .arena.multiplayer-arena.radial-arena[data-player-count="5"]>.players-grid>article:nth-child(1) .character-sprite{
     max-height:94px!important;
     -webkit-mask-image:linear-gradient(to bottom,#000 0 58%,#000d 72%,transparent 100%)!important;
     mask-image:linear-gradient(to bottom,#000 0 58%,#000d 72%,transparent 100%)!important;
   }
-  .arena.multiplayer-arena.radial-arena[data-player-count="5"]>.players-grid>article:nth-child(5) .die{width:34px!important;height:34px!important}
-  .arena.multiplayer-arena.radial-arena[data-player-count="5"]>.players-grid>article:nth-child(5) .dice-rack{gap:5px!important;min-height:40px!important}
+  .arena.multiplayer-arena.radial-arena[data-player-count="5"]>.players-grid>article:nth-child(1) .die{width:34px!important;height:34px!important}
+  .arena.multiplayer-arena.radial-arena[data-player-count="5"]>.players-grid>article:nth-child(1) .dice-rack{gap:5px!important;min-height:40px!important}
 
   /* Six joueurs : six cartes compactes en ellipse, avec seulement le haut
      des avatars dépassant du parchemin. */
@@ -651,10 +651,10 @@
   .arena.multiplayer-arena.radial-arena[data-player-count="6"] .player-head{padding-bottom:7px!important}
   .arena.multiplayer-arena.radial-arena[data-player-count="6"]>.players-grid>article:nth-child(1){left:92px;top:76px}
   .arena.multiplayer-arena.radial-arena[data-player-count="6"]>.players-grid>article:nth-child(2){right:92px;top:76px}
-  .arena.multiplayer-arena.radial-arena[data-player-count="6"]>.players-grid>article:nth-child(3){left:8px;top:350px}
-  .arena.multiplayer-arena.radial-arena[data-player-count="6"]>.players-grid>article:nth-child(4){right:8px;top:350px}
+  .arena.multiplayer-arena.radial-arena[data-player-count="6"]>.players-grid>article:nth-child(3){right:8px;top:350px}
+  .arena.multiplayer-arena.radial-arena[data-player-count="6"]>.players-grid>article:nth-child(4){right:92px;bottom:10px}
   .arena.multiplayer-arena.radial-arena[data-player-count="6"]>.players-grid>article:nth-child(5){left:92px;bottom:10px}
-  .arena.multiplayer-arena.radial-arena[data-player-count="6"]>.players-grid>article:nth-child(6){right:92px;bottom:10px}
+  .arena.multiplayer-arena.radial-arena[data-player-count="6"]>.players-grid>article:nth-child(6){left:8px;top:350px}
 
   /* La lumière du joueur actif se termine entièrement en transparence avant
      les limites de son calque : aucun bord droit ne peut donc apparaître. */
