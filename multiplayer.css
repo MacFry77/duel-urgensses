@@ -57,7 +57,7 @@
   .arena.multiplayer-arena{display:block!important;min-height:0!important;margin-top:6px!important;padding:10px!important}.multiplayer-arena>.table{display:none!important;position:relative!important;min-height:350px!important;padding:18px 14px!important}.players-grid{display:none!important}
   .multiplayer-arena[data-mobile-view="table"]>.table{display:block!important}.multiplayer-arena[data-mobile-view="hand"]>.players-grid,.multiplayer-arena[data-mobile-view="players"]>.players-grid{display:grid!important}
   .multiplayer-arena[data-mobile-view="hand"] .player-card:not(.is-me){display:none!important}.multiplayer-arena[data-mobile-view="players"] .dice-rack{display:none}.multiplayer-arena[data-mobile-view="players"] .player-card{min-height:120px!important}
-  .arena .players-grid article.player-card{margin-top:0!important;min-height:220px!important}.players-grid .avatar-zone{display:none}.players-grid .turn-indicator{top:-4px;right:8px;left:auto;transform:none}.players-grid .player-head{padding-top:34px}.players-grid .dice-rack{min-height:70px}.table .pulse{margin-top:8px!important}.arena .played{margin:10px 0!important;min-height:76px!important}.arena .table #message{min-height:62px!important}
+  .arena .players-grid article.player-card{margin-top:0!important;min-height:220px!important}.players-grid .avatar-zone{display:none}.players-grid .turn-indicator{top:-4px;right:8px;left:auto;transform:none}.players-grid .player-head{padding-top:34px}.players-grid .dice-rack{min-height:70px}.table .table-title-art{width:min(96%,420px);height:86px;margin:0 auto 6px!important}.arena .played{margin:10px 0!important;min-height:76px!important}.arena .table #message{min-height:62px!important}
   .chat-panel{width:calc(100vw - 24px)}
 }
 
