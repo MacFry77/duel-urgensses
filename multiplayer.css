@@ -813,3 +813,33 @@
 .spectator-identity-dialog{position:relative;width:min(520px,calc(100vw - 28px));padding:34px 38px 32px;border:2px solid #b99b50;background:radial-gradient(circle at 50% 0,#3e684d55,transparent 42%),linear-gradient(155deg,#173a30,#071915 72%);box-shadow:0 0 0 6px #102b23,0 18px 45px #000c;color:#f6edcf;text-align:center}
 .spectator-identity-dialog::backdrop{background:#020b09df;backdrop-filter:blur(3px)}.spectator-identity-dialog .dialog-close{color:#f4dda0}.spectator-identity-dialog .kicker{margin:0;color:#83c3a5;font-size:10px}.spectator-identity-dialog h2{margin:8px 0 12px;color:#ffe4a0;font:700 29px/1.08 Georgia,serif;text-shadow:0 3px #020907}.spectator-identity-copy{max-width:410px;margin:0 auto 22px;color:#c8dbd1;font-size:14px;line-height:1.45}.spectator-identity-dialog label{display:block;margin-bottom:7px;color:#f5d989;font:700 11px/1.2 Georgia,serif;letter-spacing:.1em;text-align:left}.spectator-identity-dialog label small{font-size:8px;color:#99b9aa}.spectator-identity-dialog input{width:100%;padding:13px 15px;border:1px solid #c7aa62;border-radius:6px;outline:0;background:linear-gradient(#eee3bd,#c8b98d);box-shadow:inset 0 2px 5px #5a4b2b55;color:#172720;font:700 17px Georgia,serif}.spectator-identity-dialog input:focus{border-color:#ffe391;box-shadow:0 0 0 3px #d7ae4b35,inset 0 2px 5px #5a4b2b55}.spectator-identity-error{margin:9px 0 0;color:#ffc0a9;font-size:12px}.spectator-identity-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}.spectator-identity-actions button{min-height:48px;padding:11px 13px;border-radius:5px}.spectator-anonymous-button{border:1px solid #8caf9f;background:linear-gradient(#315749,#17362d);color:#e9f7ef}
 @media(max-width:520px){.spectator-identity-dialog{padding:30px 20px 22px}.spectator-identity-dialog h2{font-size:24px}.spectator-identity-actions{grid-template-columns:1fr}.spectator-identity-actions button{min-height:44px}}
+
+/* Tables cérémonielles personnalisées selon le nombre de joueurs.
+   Les illustrations sont de véritables assets transparents : le contenu du
+   pli reste du HTML lisible et les cartes peuvent toujours grandir librement. */
+.arena.multiplayer-arena[data-player-count="2"]{--maya-table:url("assets/ui/table-maya-2-v1.png")}
+.arena.multiplayer-arena[data-player-count="3"]{--maya-table:url("assets/ui/table-maya-3-v1.png")}
+.arena.multiplayer-arena[data-player-count="4"]{--maya-table:url("assets/ui/table-maya-4-v1.png")}
+.arena.multiplayer-arena[data-player-count="5"]{--maya-table:url("assets/ui/table-maya-5-v1.png")}
+.arena.multiplayer-arena[data-player-count="6"]{--maya-table:url("assets/ui/table-maya-6-v1.png")}
+.arena.multiplayer-arena[data-player-count]>.table{
+  border:0!important;
+  background-color:transparent!important;
+  background-image:var(--maya-table)!important;
+  background-position:center!important;
+  background-size:100% 100%!important;
+  background-repeat:no-repeat!important;
+  box-shadow:0 22px 38px #000a!important;
+}
+.arena.multiplayer-arena[data-player-count]>.table>.stone-runes{display:none!important}
+
+@media(min-width:951px){
+  .arena.multiplayer-arena.radial-arena[data-player-count]>.table{
+    border-radius:0!important;
+    box-shadow:0 24px 42px #000a!important;
+  }
+  /* Une carte ne doit jamais couper une troisième rangée de dés. */
+  .arena.multiplayer-arena.radial-arena[data-player-count="6"]>.players-grid>article.player-card{
+    height:auto!important;
+  }
+}
