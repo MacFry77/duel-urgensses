@@ -842,4 +842,33 @@
   .arena.multiplayer-arena.radial-arena[data-player-count="6"]>.players-grid>article.player-card{
     height:auto!important;
   }
+
+  /* Ajustement propre à chaque arène : la table exploite le véritable espace
+     libre entre les joueurs sans remonter sous la carte placée au sommet. */
+  .arena.multiplayer-arena.radial-arena[data-player-count="3"]{
+    min-height:910px!important;
+  }
+  .arena.multiplayer-arena.radial-arena[data-player-count="3"]>.table{
+    top:78%!important;
+    width:clamp(420px,40%,480px)!important;
+  }
+  .arena.multiplayer-arena.radial-arena[data-player-count="4"]>.table{
+    top:60%!important;
+    width:clamp(470px,46%,520px)!important;
+  }
+  .arena.multiplayer-arena.radial-arena:is([data-player-count="5"],[data-player-count="6"]){
+    min-height:930px!important;
+  }
+  .arena.multiplayer-arena.radial-arena[data-player-count="5"]>.table{
+    top:66%!important;
+    width:clamp(520px,48%,560px)!important;
+    height:650px!important;
+    min-height:650px!important;
+  }
+  .arena.multiplayer-arena.radial-arena[data-player-count="6"]>.table{
+    top:65%!important;
+    width:clamp(540px,50%,580px)!important;
+    height:650px!important;
+    min-height:650px!important;
+  }
 }
