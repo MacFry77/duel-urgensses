@@ -817,11 +817,11 @@
 /* Tables cérémonielles personnalisées selon le nombre de joueurs.
    Les illustrations sont de véritables assets transparents : le contenu du
    pli reste du HTML lisible et les cartes peuvent toujours grandir librement. */
-.arena.multiplayer-arena[data-player-count="2"]{--maya-table:url("assets/ui/table-maya-2-v1.png")}
-.arena.multiplayer-arena[data-player-count="3"]{--maya-table:url("assets/ui/table-maya-3-v1.png")}
-.arena.multiplayer-arena[data-player-count="4"]{--maya-table:url("assets/ui/table-maya-4-v1.png")}
-.arena.multiplayer-arena[data-player-count="5"]{--maya-table:url("assets/ui/table-maya-5-v1.png")}
-.arena.multiplayer-arena[data-player-count="6"]{--maya-table:url("assets/ui/table-maya-6-v1.png")}
+.arena.multiplayer-arena[data-player-count="2"]{--maya-table:url("assets/ui/table-maya-2-v2.png")}
+.arena.multiplayer-arena[data-player-count="3"]{--maya-table:url("assets/ui/table-maya-3-v2.png")}
+.arena.multiplayer-arena[data-player-count="4"]{--maya-table:url("assets/ui/table-maya-4-v2.png")}
+.arena.multiplayer-arena[data-player-count="5"]{--maya-table:url("assets/ui/table-maya-5-v2.png")}
+.arena.multiplayer-arena[data-player-count="6"]{--maya-table:url("assets/ui/table-maya-6-v2.png")}
 .arena.multiplayer-arena[data-player-count]>.table{
   border:0!important;
   background-color:transparent!important;
@@ -829,14 +829,14 @@
   background-position:center!important;
   background-size:100% 100%!important;
   background-repeat:no-repeat!important;
-  box-shadow:0 22px 38px #000a!important;
+  box-shadow:none!important;
 }
 .arena.multiplayer-arena[data-player-count]>.table>.stone-runes{display:none!important}
 
 @media(min-width:951px){
   .arena.multiplayer-arena.radial-arena[data-player-count]>.table{
     border-radius:0!important;
-    box-shadow:0 24px 42px #000a!important;
+    box-shadow:none!important;
   }
   /* Une carte ne doit jamais couper une troisième rangée de dés. */
   .arena.multiplayer-arena.radial-arena[data-player-count="6"]>.players-grid>article.player-card{
