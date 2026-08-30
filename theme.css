@@ -454,10 +454,12 @@ dialog,
 }
 
 .arena .table .pulse {
-  height: 25px;
-  margin: 10px 0 21px;
-  opacity: .72;
-  filter: sepia(1) saturate(1.9) hue-rotate(335deg) drop-shadow(0 1px #fff0b8);
+  height: 42px;
+  margin: 4px 0 10px;
+  background: url("assets/ui/ecg-pixel-red-v1.png") center / 100% 100% no-repeat;
+  image-rendering: pixelated;
+  opacity: 1;
+  filter: drop-shadow(0 2px 0 #64191b88) drop-shadow(0 0 2px #e1453540);
 }
 
 .arena .table #message {
