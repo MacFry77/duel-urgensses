@@ -83,6 +83,14 @@ test('le décompte mémorise les faits servant aux chroniques de fin', () => {
   assert.deepEqual(room.players[1],{bid:4,tricks:3,score:20,totalBid:4,boldestBid:4,missedRounds:1,roundHistory:[{round:3,bid:4,tricks:3,exact:false,scoreBefore:20,points:0,scoreAfter:20}]});
 });
 
+test('un pari zéro réussi en manche 8 rapporte bien 80 points, même après restauration', () => {
+  const room={round:'8',players:[{bid:'0',tricks:'0',score:'40'}]};
+  scoreRound(room);
+  assert.equal(room.players[0].score,120);
+  assert.equal(room.players[0].zeroSuccesses,1);
+  assert.deepEqual(room.players[0].roundHistory,[{round:8,bid:0,tricks:0,exact:true,scoreBefore:40,points:80,scoreAfter:120}]);
+});
+
 test('les paris adverses restent secrets puis sont révélés ensemble', () => {
   const room = {
     code:'ABCDE',status:'playing',hostId:'p1',totalRounds:3,round:1,trick:1,

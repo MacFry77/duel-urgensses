@@ -319,7 +319,7 @@ function resolve(room) {
   if(!nums.length)return plays.at(-1).player;
   return nums.reduce((a,b)=>b.die.face>=a.die.face?b:a).player;
 }
-function scoreRound(room){room.players.forEach(p=>{const bid=Number(p.bid)||0,scoreBefore=p.score,exact=p.bid===p.tricks;p.totalBid=(p.totalBid||0)+bid;p.boldestBid=Math.max(p.boldestBid||0,bid);if(exact){p.exactRounds=(p.exactRounds||0)+1;if(p.bid===0)p.zeroSuccesses=(p.zeroSuccesses||0)+1;p.score+=p.bid===0?room.round*10:p.tricks*20}else p.missedRounds=(p.missedRounds||0)+1;(p.roundHistory||(p.roundHistory=[])).push({round:room.round,bid,tricks:p.tricks,exact,scoreBefore,points:p.score-scoreBefore,scoreAfter:p.score});});}
+function scoreRound(room){room.players.forEach(p=>{const bid=Number(p.bid),tricks=Number(p.tricks),round=Math.max(1,Number(room.round)||1),scoreBefore=Number(p.score)||0,exact=Number.isInteger(bid)&&Number.isInteger(tricks)&&bid===tricks;p.score=scoreBefore;p.totalBid=(Number(p.totalBid)||0)+(Number.isInteger(bid)?bid:0);p.boldestBid=Math.max(Number(p.boldestBid)||0,Number.isInteger(bid)?bid:0);if(exact){p.exactRounds=(Number(p.exactRounds)||0)+1;if(bid===0)p.zeroSuccesses=(Number(p.zeroSuccesses)||0)+1;p.score+=bid===0?round*10:tricks*20}else p.missedRounds=(Number(p.missedRounds)||0)+1;(p.roundHistory||(p.roundHistory=[])).push({round,bid:Number.isInteger(bid)?bid:null,tricks:Number.isInteger(tricks)?tricks:0,exact,scoreBefore,points:p.score-scoreBefore,scoreAfter:p.score});});}
 function cleanDisplayName(value){return String(value||'').replace(/[\u0000-\u001f\u007f]/g,'').trim().replace(/\s+/g,' ').slice(0,24)}
 function removePlayer(room,targetId,{notify=true}={}){
   const removedIndex=room.players.findIndex(p=>p.id===targetId);if(removedIndex<0)return null;

@@ -65,10 +65,10 @@
 .bid-reveal{width:calc(100% + 12px);max-width:700px;margin:8px -6px 14px;padding:12px 12px 14px;border:0;border-radius:0;background:radial-gradient(ellipse at center,#173c3424 0%,#173c340d 48%,transparent 76%);box-shadow:none}
 .bid-reveal>h3{margin:0 0 9px;color:#385347;font-size:11px;letter-spacing:.18em;text-align:center;text-shadow:0 1px #fff4c7}
 .bid-reveal-grid,.mobile-bid-reveal{display:flex;justify-content:center;align-items:end;gap:16px;flex-wrap:wrap}
-.revealed-bid{display:grid;grid-template-rows:auto 118px;min-width:120px;place-items:center;color:#31493f;text-align:center;animation:bid-hand-reveal .55s cubic-bezier(.2,.9,.25,1.25) both}
+.revealed-bid{display:grid;grid-template-rows:118px auto;min-width:130px;padding:3px 5px 7px;place-items:center;border-radius:12px;background:radial-gradient(ellipse at 50% 42%,#fff0b82e 0%,#173c3410 55%,transparent 76%);color:#31493f;text-align:center;animation:bid-hand-reveal .55s cubic-bezier(.2,.9,.25,1.25) both}
 .revealed-bid:nth-child(2){animation-delay:.06s}.revealed-bid:nth-child(3){animation-delay:.12s}.revealed-bid:nth-child(4){animation-delay:.18s}
-.revealed-bid>span{font-size:10px;font-weight:900}
-.bid-gesture{position:relative;display:inline-grid;width:138px;height:116px;place-items:center;filter:none}
+.revealed-bid-name{position:relative;z-index:4;display:inline-block;min-width:82px;max-width:132px;margin-top:-2px;padding:5px 10px;border:1px solid #d6b85f;border-radius:999px;background:linear-gradient(#214d40,#102f29);color:#fff0b0;font:900 13px/1.05 Georgia,serif;letter-spacing:.04em;text-align:center;text-shadow:0 1px 1px #000,0 0 5px #000;box-shadow:0 2px 0 #071d18,0 3px 9px #0008,inset 0 1px #ffffff20;overflow-wrap:anywhere}
+.bid-gesture{position:relative;display:inline-grid;width:138px;height:116px;place-items:center;filter:drop-shadow(0 5px 4px #2b160b45) drop-shadow(0 0 2px #fff1bb80)}
 .bid-gesture img{display:block;max-width:100%;max-height:100%;object-fit:contain}
 .bid-gesture.from-right img{transform:scaleX(-1)}
 /* Variantes de mains : les gestes validés restent strictement identiques. */
@@ -89,8 +89,9 @@
   .mobile-revealed-bids{border-color:transparent;background:radial-gradient(ellipse at center,#173b3488,transparent 78%);box-shadow:none}
   .mobile-revealed-bids h3{color:#ffe08a!important}
   .mobile-bid-reveal{gap:5px}
-  .mobile-bid-reveal .revealed-bid{grid-template-rows:auto 82px;min-width:82px}
+  .mobile-bid-reveal .revealed-bid{grid-template-rows:82px auto;min-width:90px;padding:2px 3px 6px}
   .mobile-bid-reveal .bid-gesture{width:92px;height:80px}
+  .mobile-bid-reveal .revealed-bid-name{min-width:68px;max-width:96px;padding:4px 7px;font-size:11px}
 }
 
 /* Salle d'attente — même langage visuel que le panneau d'expédition */
@@ -566,7 +567,7 @@
     align-content:center;
   }
   .arena.multiplayer-arena.radial-arena:is([data-player-count="5"],[data-player-count="6"])>.table .revealed-bid{
-    grid-template-rows:auto 104px;
+    grid-template-rows:104px auto;
     min-width:124px;
   }
   .arena.multiplayer-arena.radial-arena:is([data-player-count="5"],[data-player-count="6"])>.table .bid-gesture{

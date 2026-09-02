@@ -42,7 +42,7 @@ function bidGestureHTML(player,index,compact=false){
 }
 function bidsAreRevealed(){return state.phase!=='bids'&&state.players.length>0&&state.players.every(player=>Number.isInteger(player.bid))}
 function shouldShowBidReveal(){return bidsAreRevealed()&&state.phase==='play'&&state.trick===1&&state.played.length===0}
-function bidRevealHTML(mobile=false){return `<div class="${mobile?'mobile-bid-reveal':'bid-reveal-grid'}">${state.players.map((player,index)=>`<div class="revealed-bid"><span>${esc(player.name)}</span>${bidGestureHTML(player,index)}</div>`).join('')}</div>`}
+function bidRevealHTML(mobile=false){return `<div class="${mobile?'mobile-bid-reveal':'bid-reveal-grid'}">${state.players.map((player,index)=>`<div class="revealed-bid">${bidGestureHTML(player,index)}<span class="revealed-bid-name">${esc(player.name)}</span></div>`).join('')}</div>`}
 function avatarSideForSeat(index,playerCount){
   // Les joueurs sont disposés dans l'ordre horaire. Les avatars placés à
   // droite sont retournés vers la table, ceux de gauche regardent à droite.
