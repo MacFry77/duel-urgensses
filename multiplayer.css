@@ -872,3 +872,48 @@
     min-height:690px!important;
   }
 }
+
+/* Pendant les paris, les choix constituent l'action principale : ils restent
+   au centre utile du plateau, indépendamment de la forme et de la hauteur de
+   l'illustration maya. L'ancienne zone des dés joués ne réserve alors aucune
+   place susceptible de les repousser dans l'ornement inférieur. */
+@media(min-width:851px){
+  .game[data-phase="bids"] .arena.multiplayer-arena>.table>.played{
+    display:none!important;
+  }
+  .game[data-phase="bids"] .arena.multiplayer-arena>.table>.bid-controls:not(:empty){
+    position:absolute!important;
+    z-index:20!important;
+    left:50%!important;
+    top:58%!important;
+    width:min(82%,620px)!important;
+    min-height:68px!important;
+    margin:0!important;
+    padding:10px 12px 14px!important;
+    transform:translate(-50%,-50%)!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:12px!important;
+    border:1px solid #8b6727!important;
+    border-radius:12px!important;
+    background:radial-gradient(ellipse at center,#fff1a9f2 0%,#e2bd61e8 62%,#9a6824d9 100%)!important;
+    box-shadow:0 8px 0 #513517,0 13px 24px #140b05a6,inset 0 0 0 2px #fff0a0,0 0 24px #ffd65c99!important;
+  }
+  .game[data-phase="bids"] .arena.multiplayer-arena>.table>.bid-controls button{
+    width:58px!important;
+    height:58px!important;
+    flex:0 0 58px!important;
+    border:3px solid #563719!important;
+    background:radial-gradient(circle at 34% 27%,#fffbd8 0%,#f1d171 48%,#b77b28 100%)!important;
+    color:#172f27!important;
+    font-size:22px!important;
+    box-shadow:0 5px 0 #513517,0 8px 12px #140b057a,inset 0 0 0 2px #fff0a7,0 0 10px #ffe27a!important;
+  }
+  .game[data-phase="bids"] .arena.multiplayer-arena>.table>.bid-controls button:hover,
+  .game[data-phase="bids"] .arena.multiplayer-arena>.table>.bid-controls button:focus-visible{
+    transform:translateY(-4px) scale(1.06)!important;
+    filter:brightness(1.12)!important;
+    outline:3px solid #fff2a7!important;
+    outline-offset:3px!important;
+  }
+}
