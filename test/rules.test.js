@@ -1,10 +1,22 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const { resolve, publicState, aggregateResults, removePlayer, transferHost, lobbySummaries, activeGameSummaries, replaceSocket, scoreRound, startMatch, facesFor, makePool, roll, nextClockwise } = require('../server');
 
 const symbol = color => ({color, face:'symbol'});
 const flag = color => ({color, face:'flag'});
 const played = dice => ({played:dice.map((die, player) => ({player, die}))});
+
+test('aucune table maya de 2 à 6 joueurs ne conserve le filtre flou rectangulaire', () => {
+  const css=fs.readFileSync(path.join(__dirname,'..','multiplayer.css'),'utf8');
+  for(let players=2;players<=6;players++)assert.match(css,new RegExp(`data-player-count="${players}"\\]\\{--maya-table:`));
+  const tableRule=css.match(/\.arena\.multiplayer-arena\[data-player-count\]>\.table\{([^}]+)\}/)?.[1]||'';
+  assert.match(tableRule,/-webkit-backdrop-filter:none!important/);
+  assert.match(tableRule,/backdrop-filter:none!important/);
+  assert.match(tableRule,/background-color:transparent!important/);
+  assert.match(tableRule,/box-shadow:none!important/);
+});
 
 test('le tour suit toujours le même sens horaire et boucle sans inversion', () => {
   const room={players:[{id:'a'},{id:'b'},{id:'c'},{id:'d'}]};
